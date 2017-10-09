@@ -1,12 +1,13 @@
 package org.neu;
 
-import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.neu.job.FlightCountJob;
 import org.neu.job.FlightDelayJob;
+
+import java.io.IOException;
 
 public class FlightPerformance {
 
