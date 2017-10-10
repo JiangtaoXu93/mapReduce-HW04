@@ -81,7 +81,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   }
 
   @Override
-  public int compareTo(FlightCompositeKey o) {
+  public int compareTo(FlightCompositeKey obj1) {
     return 0;
   }
 }
