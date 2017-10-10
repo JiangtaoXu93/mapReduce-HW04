@@ -11,6 +11,7 @@ public class FlightAirportPartitioner extends Partitioner<FlightCompositeKey, Lo
   @Override
   public int getPartition(FlightCompositeKey key, LongWritable longWritable, int numPartitions) {
 
-    return Math.abs(key.getMonth().hashCode() * key.getAirport().hashCode()) % numPartitions;
+    return Math.abs((key.getMonth().toString() + key.getAirportCode().toString()).hashCode())
+        % numPartitions;
   }
 }

@@ -10,15 +10,15 @@ import org.apache.hadoop.io.WritableComparable;
 public class FlightCompositeKey implements WritableComparable<FlightCompositeKey> {
 
   private Text month;
-  private Text airport;
-  private Text airline;
+  private Text airportCode;
+  private Text airlineCode;
   private IntWritable delay;
   private IntWritable count;
 
-  public FlightCompositeKey(Text month, Text airport, Text airline, IntWritable delay) {
+  public FlightCompositeKey(Text month, Text airportCode, Text airline, IntWritable delay) {
     this.month = month;
-    this.airport = airport;
-    this.airline = airline;
+    this.airportCode = airportCode;
+    this.airlineCode = airline;
     this.delay = delay;
   }
 
@@ -30,20 +30,20 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     this.month = month;
   }
 
-  public Text getAirport() {
-    return airport;
+  public Text getAirportCode() {
+    return airportCode;
   }
 
-  public void setAirport(Text airport) {
-    this.airport = airport;
+  public void setAirportCode(Text airportCode) {
+    this.airportCode = airportCode;
   }
 
-  public Text getAirline() {
-    return airline;
+  public Text getAirlineCode() {
+    return airlineCode;
   }
 
-  public void setAirline(Text airline) {
-    this.airline = airline;
+  public void setAirlineCode(Text airlineCode) {
+    this.airlineCode = airlineCode;
   }
 
   public IntWritable getDelay() {
@@ -65,8 +65,8 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     month.write(dataOutput);
-    airport.write(dataOutput);
-    airline.write(dataOutput);
+    airportCode.write(dataOutput);
+    airlineCode.write(dataOutput);
     delay.write(dataOutput);
     count.write(dataOutput);
   }
@@ -74,8 +74,8 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   @Override
   public void readFields(DataInput dataInput) throws IOException {
     month.readFields(dataInput);
-    airport.readFields(dataInput);
-    airline.readFields(dataInput);
+    airportCode.readFields(dataInput);
+    airlineCode.readFields(dataInput);
     delay.readFields(dataInput);
     count.readFields(dataInput);
   }
