@@ -22,6 +22,15 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     this.delay = delay;
   }
 
+  public static int groupCompare(FlightCompositeKey a, FlightCompositeKey b) {
+
+    return 0;
+  }
+
+  public static int sortCompare(FlightCompositeKey a, FlightCompositeKey b) {
+    return 0;
+  }
+
   public Text getMonth() {
     return month;
   }
@@ -81,7 +90,8 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   }
 
   @Override
-  public int compareTo(FlightCompositeKey obj1) {
+  public int compareTo(FlightCompositeKey key) {
+
     return 0;
   }
 }
