@@ -14,6 +14,13 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     private IntWritable delay;
     private IntWritable count;
 
+    public FlightCompositeKey(Text month, Text airport, Text airline, IntWritable delay) {
+        this.month = month;
+        this.airport = airport;
+        this.airline = airline;
+        this.delay = delay;
+    }
+
     public Text getMonth() {
         return month;
     }
