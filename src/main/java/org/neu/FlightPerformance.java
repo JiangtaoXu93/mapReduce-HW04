@@ -1,13 +1,12 @@
 package org.neu;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.neu.job.FlightCountJob;
 import org.neu.job.FlightDelayJob;
-
-import java.io.IOException;
 
 public class FlightPerformance {
 
@@ -37,6 +36,7 @@ public class FlightPerformance {
       System.out.println(">>>>>> FlightDelayJob failed.");
       throw new RuntimeException("FlightDelayJob failed.");
     }
+
   }
 
   private static void cleanOutDir(String loc, Configuration conf) throws IOException {
