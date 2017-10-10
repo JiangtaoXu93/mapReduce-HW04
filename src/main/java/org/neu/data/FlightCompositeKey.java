@@ -16,6 +16,11 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   private FlightRecordType recordType;
 
   public FlightCompositeKey() {
+    this.month = new Text();
+    this.airportCode = new Text();
+    this.airlineCode = new Text();
+    this.count = new IntWritable();
+    this.recordType = FlightRecordType.DEFAULT;
   }
 
   public FlightCompositeKey(Text month, Text airportCode, Text airline,
@@ -83,6 +88,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     airportCode.write(dataOutput);
     airlineCode.write(dataOutput);
     count.write(dataOutput);
+    recordType.
   }
 
   @Override
@@ -141,6 +147,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   }
 
   public static enum FlightRecordType {
+    DEFAULT,
     RECORD_TYPE_AIRPORT,
     RECORD_TYPE_AIRLINE
 

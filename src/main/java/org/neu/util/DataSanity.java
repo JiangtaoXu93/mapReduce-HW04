@@ -79,8 +79,8 @@ public class DataSanity {
         return false;
       }
 
-      int arrDelay = Integer.parseInt(record[csvColumnMap.get("arrDelay")]);
-      int arrDelayMinutes = Integer.parseInt(record[csvColumnMap.get("arrDelayMinutes")]);
+      int arrDelay = (int)Float.parseFloat(record[csvColumnMap.get("arrDelay")]);
+      int arrDelayMinutes = (int)Float.parseFloat(record[csvColumnMap.get("arrDelayMinutes")]);
 
       //if ArrDelay > 0 then ArrDelay should equal to ArrDelayMinutes
       //if ArrDelay < 0 then ArrDelayMinutes should be zero
@@ -94,6 +94,7 @@ public class DataSanity {
         return Boolean.parseBoolean(record[csvColumnMap.get("arrDel15")]);
       }
     } catch (NumberFormatException nfe) {
+      nfe.printStackTrace();
       return false;
     }
     return true;

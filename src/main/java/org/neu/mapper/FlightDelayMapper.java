@@ -26,7 +26,7 @@ public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightComposit
   public void map(LongWritable key, Text value, Context context)
       throws IOException, InterruptedException {
     String[] flightRecord = this.csvParser.parseLine(value.toString());
-
+    System.out.println(flightRecord);
     if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
       FlightCompositeKey fKeyAirline = new FlightCompositeKey(
           flightRecord[csvColumnMap.get("month")],
@@ -42,9 +42,9 @@ public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightComposit
       );
 
       context.write(fKeyAirport,
-          new IntWritable(Integer.valueOf(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
+          new IntWritable((int)Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
       context.write(fKeyAirline,
-          new IntWritable(Integer.valueOf(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
+          new IntWritable((int)Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
 
     }
   }

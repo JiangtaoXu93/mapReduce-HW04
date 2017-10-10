@@ -27,7 +27,8 @@ AWS_NUM_NODES=1
 AWS_INSTANCE_TYPE=m1.medium
 #AWS_INSTANCE_TYPE=m4.xlarge
 
-all: build gunzip setup-hdfs run
+#all: build gunzip setup-hdfs run
+all: build setup-hdfs run
 
 all-uz: build setup-hdfs run
 
