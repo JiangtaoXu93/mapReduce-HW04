@@ -13,18 +13,18 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   private Text airportCode;
   private Text airlineCode;
   private IntWritable count;
-  private FlightRecordType recordType;
+  private IntWritable recordType; //1-Airport , 2-Airline
 
   public FlightCompositeKey() {
     this.month = new Text();
     this.airportCode = new Text();
     this.airlineCode = new Text();
     this.count = new IntWritable();
-    this.recordType = FlightRecordType.DEFAULT;
+    this.recordType = new IntWritable();
   }
 
   public FlightCompositeKey(Text month, Text airportCode, Text airline,
-      FlightRecordType recordType) {
+      IntWritable recordType) {
     this.month = month;
     this.airportCode = airportCode;
     this.airlineCode = airline;
@@ -33,8 +33,8 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   }
 
   public FlightCompositeKey(String month, String airportCode, String airline,
-      FlightRecordType recordType) {
-    this(new Text(month), new Text(airportCode), new Text(airline), recordType);
+      int recordType) {
+    this(new Text(month), new Text(airportCode), new Text(airline), new IntWritable(recordType));
   }
 
   public static int groupCompare(FlightCompositeKey a, FlightCompositeKey b) {
@@ -88,7 +88,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     airportCode.write(dataOutput);
     airlineCode.write(dataOutput);
     count.write(dataOutput);
-    recordType.
+    recordType.write(dataOutput);
   }
 
   @Override
@@ -97,6 +97,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     airportCode.readFields(dataInput);
     airlineCode.readFields(dataInput);
     count.readFields(dataInput);
+    recordType.readFields(dataInput);
   }
 
   @Override
@@ -104,11 +105,11 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     return 0;
   }
 
-  public FlightRecordType getRecordType() {
+  public IntWritable getRecordType() {
     return recordType;
   }
 
-  public void setRecordType(FlightRecordType recordType) {
+  public void setRecordType(IntWritable recordType) {
     this.recordType = recordType;
   }
 
@@ -119,11 +120,11 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
       if (!recordType.equals(that.recordType) && month.equals(that.month)) {
         return false;
       }
-      if (FlightRecordType.RECORD_TYPE_AIRPORT.equals(recordType)) {
+      if (1==recordType.get()) {
         return airportCode.equals(that.getAirportCode());
       }
-      if (FlightRecordType.RECORD_TYPE_AIRLINE.equals(recordType)) {
-        return airlineCode.equals(that.getAirportCode());
+      if (2==recordType.get()) {
+        return airlineCode.equals(that.getAirlineCode());
       }
     }
     return false;
@@ -131,7 +132,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
 
   @Override
   public int hashCode() {
-    if (FlightRecordType.RECORD_TYPE_AIRPORT.equals(recordType)) {
+    if (1==recordType.get()) {
       return month.hashCode() + 167 * airportCode.hashCode();
     } else {
       return month.hashCode() + 167 * airlineCode.hashCode();
@@ -141,15 +142,9 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   @Override
   public String toString() {
     return month.toString()
-        + " " + airportCode.toString()
-        + " " + airlineCode.toString()
-        + " " + count.toString();
-  }
-
-  public static enum FlightRecordType {
-    DEFAULT,
-    RECORD_TYPE_AIRPORT,
-    RECORD_TYPE_AIRLINE
-
+        + "," + airportCode.toString()
+        + "," + airlineCode.toString()
+        + "," + count.toString()
+        + "," + recordType.toString();
   }
 }

@@ -12,7 +12,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.neu.data.FlightCompositeKey;
-import org.neu.data.FlightCompositeKey.FlightRecordType;
 
 public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightCompositeKey, IntWritable> {
 
@@ -28,23 +27,25 @@ public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightComposit
     String[] flightRecord = this.csvParser.parseLine(value.toString());
     System.out.println(flightRecord);
     if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
-      FlightCompositeKey fKeyAirline = new FlightCompositeKey(
-          flightRecord[csvColumnMap.get("month")],
-          StringUtils.EMPTY,
-          flightRecord[csvColumnMap.get("airlineID")],
-          FlightRecordType.RECORD_TYPE_AIRLINE
-      );
       FlightCompositeKey fKeyAirport = new FlightCompositeKey(
           flightRecord[csvColumnMap.get("month")],
           flightRecord[csvColumnMap.get("destAirportId")],
           StringUtils.EMPTY,
-          FlightRecordType.RECORD_TYPE_AIRPORT
+          1
+      );
+      FlightCompositeKey fKeyAirline = new FlightCompositeKey(
+          flightRecord[csvColumnMap.get("month")],
+          StringUtils.EMPTY,
+          flightRecord[csvColumnMap.get("airlineID")],
+          2
       );
 
       context.write(fKeyAirport,
-          new IntWritable((int)Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
+          new IntWritable(
+              (int) Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
       context.write(fKeyAirline,
-          new IntWritable((int)Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
+          new IntWritable(
+              (int) Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
 
     }
   }
