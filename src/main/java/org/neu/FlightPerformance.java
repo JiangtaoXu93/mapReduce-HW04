@@ -5,30 +5,23 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
-import org.neu.job.FlightCountJob;
 import org.neu.job.FlightDelayJob;
 
 public class FlightPerformance {
 
   public static void main(String[] args) throws Exception {
+    if (args.length < 4) {
+      System.out.println("Invalid Arguments.");
+      System.exit(1);
+    }
+
     Configuration conf = new Configuration();
     runJobs(args, conf);
   }
 
-
   private static void runJobs(String[] args, Configuration conf) throws Exception {
-
     int result;
-    cleanOutDir(args[3], conf);
-
-    //FlightCountJob
-    System.out.println(">>>>>> Running FlightCountJob.");
-    result = ToolRunner.run(conf, new FlightCountJob(), args);
-    if (0 != result) {
-      System.out.println(">>>>>> FlightCountJob failed.");
-      throw new RuntimeException("FlightCountJob failed.");
-    }
-
+    cleanOutDir(args[2], conf);
     //FlightDelayJob
     System.out.println(">>>>>> Running FlightDelayJob.");
     result = ToolRunner.run(conf, new FlightDelayJob(), args);

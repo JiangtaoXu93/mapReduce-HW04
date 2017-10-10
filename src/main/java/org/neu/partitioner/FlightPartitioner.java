@@ -1,6 +1,6 @@
 package org.neu.partitioner;
 
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.neu.data.FlightCompositeKey;
 
@@ -8,19 +8,10 @@ import org.neu.data.FlightCompositeKey;
  * FlightPartitioner partitions on,
  * <Month>+<AirportCode> or <Month>+<AirlineCode>
  */
-public class FlightPartitioner extends Partitioner<FlightCompositeKey, LongWritable> {
+public class FlightPartitioner extends Partitioner<FlightCompositeKey, IntWritable> {
 
   @Override
-  public int getPartition(FlightCompositeKey key, LongWritable longWritable, int numPartitions) {
-
-    if (null != key.getAirlineCode()) {
-      return Math.abs((key.getMonth().toString() + key.getAirportCode().toString()).hashCode())
-          % numPartitions;
-    } else {
-      return Math.abs((key.getMonth().toString() + key.getAirlineCode().toString()).hashCode())
-          % numPartitions;
-    }
+  public int getPartition(FlightCompositeKey key, IntWritable intWritable, int numPartitions) {
+    return Math.abs(key.getMonth().hashCode() * 127) % numPartitions;
   }
-
-
 }

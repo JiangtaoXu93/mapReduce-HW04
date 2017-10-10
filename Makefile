@@ -1,16 +1,15 @@
 REPETITIONS = 1
-K = 2
 HADOOP_HOME=/usr/local/hadoop
 HADOOP_VERSION=2.8.1
-MY_CLASSPATH=${HADOOP_HOME}/share/hadoop/common/hadoop-common-${HADOOP_VERSION}.jar:${HADOOP_HOME}/share/hadoop/mapreduce/*:out:.
+MY_CLASSPATH=${HADOOP_HOME}/share/hadoop/common/hadoop-common-${HADOOP_VERSION}.jar:${HADOOP_HOME}/share/hadoop/mapreduce/*:lib/*:lib/commons-lang3-3.6/*:lib/commons-lang-2.6/*:out:.
 PROJECT_BASE=src/main/java/org/neu
 INPUT_FOLDER=input
 OUTPUT_FOLDER=output
-INPUT_TYPE=books
+INPUT_TYPE=less
 REPORT_FOLDER=report
-JAR_NAME=NeighborhoodScoreHadoop.jar
+JAR_NAME=FlightPerformance.jar
 JAR_PATH=${JAR_NAME}
-JOB_NAME=NeighborhoodScore
+JOB_NAME=FlightPerformance
 
 # AWS EMR Execution
 # Inspired from MAKE Scripts authored by
@@ -18,7 +17,7 @@ JOB_NAME=NeighborhoodScore
 #  - Joseph Sackett -> http://www.ccis.northeastern.edu/people/joseph-sackett/
 AWS_EMR_RELEASE=emr-5.8.0
 AWS_REGION=us-east-1
-AWS_BUCKET_NAME=mr-neighbor
+AWS_BUCKET_NAME=MR-FlightPerformance
 AWS_SUBNET_ID=subnet-51e4fd7a
 AWS_INPUT=${INPUT_FOLDER}
 AWS_OUTPUT=${OUTPUT_FOLDER}
@@ -43,16 +42,16 @@ compile:
 	${PROJECT_BASE}/reducer/*.java \
 	${PROJECT_BASE}/data/*.java \
 	${PROJECT_BASE}/partitioner/*.java \
+	${PROJECT_BASE}/combiner/*.java \
 	${PROJECT_BASE}/comparator/*.java \
-	${PROJECT_BASE}/reader/*.java
 
 jar:
 	cp -r META-INF/MANIFEST.MF out
-	cd out; jar cvmf MANIFEST.MF NeighborhoodScoreHadoop.jar *
-	mv out/NeighborhoodScoreHadoop.jar .
+	cd out; jar cvmf MANIFEST.MF ${JAR_NAME} * ../lib
+	mv out/${JAR_NAME} .
 
 run:
-	${HADOOP_HOME}/bin/hadoop jar NeighborhoodScoreHadoop.jar ${REPETITIONS} ${K} ${INPUT_FOLDER} ${OUTPUT_FOLDER} ${REPORT_FOLDER}
+	${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} ${REPETITIONS} ${INPUT_FOLDER} ${OUTPUT_FOLDER} ${REPORT_FOLDER}
 
 clean:
 	$(HADOOP_HOME)/bin/hdfs dfs -rm -r output;
@@ -101,7 +100,7 @@ cloud: build upload-app-aws delete-output-aws
 		--release-label ${AWS_EMR_RELEASE} \
 		--instance-groups InstanceCount=${AWS_NUM_NODES},InstanceGroupType=CORE,InstanceType=${AWS_INSTANCE_TYPE} InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${AWS_INSTANCE_TYPE} \
 	    --applications Name=Hadoop \
-	    --steps Args=${REPETITIONS},${K},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
+	    --steps Args=${REPETITIONS},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
 		--log-uri s3://${AWS_BUCKET_NAME}/${AWS_LOG_DIR} \
 		--service-role EMR_DefaultRole \
 		--ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=${AWS_SUBNET_ID} \
@@ -115,7 +114,7 @@ cloud-custom: build upload-app-aws delete-output-aws
 		--release-label ${AWS_EMR_RELEASE} \
 		--instance-groups InstanceCount=${AWS_NUM_NODES},InstanceGroupType=CORE,InstanceType=${AWS_INSTANCE_TYPE} InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${AWS_INSTANCE_TYPE} \
 	    --applications Name=Hadoop \
-	    --steps Args=${REPETITIONS},${K},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
+	    --steps Args=${REPETITIONS},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
 		--log-uri s3://${AWS_BUCKET_NAME}/${AWS_LOG_DIR} \
 		--service-role EMR_DefaultRole \
 		--ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=${AWS_SUBNET_ID} \

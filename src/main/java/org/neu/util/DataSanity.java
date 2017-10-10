@@ -5,13 +5,16 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 public class DataSanity {
-  private static Map<String, Integer> csvColumnMap = new HashMap<>();
+  public static Map<String, Integer> csvColumnMap = new HashMap<>();
 
   /*Initializes map containing CSV Column Mapping*/
-  private static void initCsvColumnMap() {
+  public static void initCsvColumnMap() {
+    csvColumnMap.put("month", 2); //MONTH
+    csvColumnMap.put("airlineID", 7);//AIRLINE_ID
     csvColumnMap.put("airportID", 11);//ORIGIN_AIRPORT_ID
     csvColumnMap.put("airportSeqID", 12);//ORIGIN_AIRPORT_SEQ_ID
     csvColumnMap.put("origin", 14);//ORIGIN
+    csvColumnMap.put("destAirportId", 20); //DEST_AIRPORT_ID
     csvColumnMap.put("cityMarketID", 22);//DEST_CITY_MARKET_ID
     csvColumnMap.put("destination", 23);//DEST
     csvColumnMap.put("cityName", 24);//DEST_CITY_NAME
@@ -72,7 +75,7 @@ public class DataSanity {
       //ArrTime -  DepTime - ActualElapsedTime - timeZone should be zero
       if (Integer.parseInt(record[csvColumnMap.get("arrTime")]) - Integer
           .parseInt(record[csvColumnMap.get("depTime")]) - Integer
-          .parseInt(record[csvColumnMap.get("actualElpsedTime")]) - timeZone != 0) {
+          .parseInt(record[csvColumnMap.get("actualElapsedTime")]) - timeZone != 0) {
         return false;
       }
 
