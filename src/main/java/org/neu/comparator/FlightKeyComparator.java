@@ -4,9 +4,9 @@ import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 import org.neu.data.FlightCompositeKey;
 
-public class FlightSortComparator extends WritableComparator {
+public class FlightKeyComparator extends WritableComparator {
 
-  protected FlightSortComparator() {
+  protected FlightKeyComparator() {
     super(FlightCompositeKey.class, true);
   }
 
@@ -14,7 +14,7 @@ public class FlightSortComparator extends WritableComparator {
   public int compare(WritableComparable a, WritableComparable b) {
     FlightCompositeKey pair1 = (FlightCompositeKey) a;
     FlightCompositeKey pair2 = (FlightCompositeKey) b;
-    return FlightCompositeKey.sortCompare(pair1, pair2);
+    return FlightCompositeKey.compare(pair1,pair2);
 
   }
 

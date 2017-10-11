@@ -17,7 +17,7 @@ public class FlightGroupComparator extends WritableComparator {
   public int compare(WritableComparable w1, WritableComparable w2) {
     FlightCompositeKey k1 = (FlightCompositeKey) w1;
     FlightCompositeKey k2 = (FlightCompositeKey) w2;
-    return FlightCompositeKey.groupCompare(k1,k2);
+    return FlightCompositeKey.compare(k1,k2);
   }
 
 }

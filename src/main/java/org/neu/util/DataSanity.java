@@ -9,6 +9,7 @@ public class DataSanity {
 
   /*Initializes map containing CSV Column Mapping*/
   public static void initCsvColumnMap() {
+    csvColumnMap.put("year", 0); //YEAR
     csvColumnMap.put("month", 2); //MONTH
     csvColumnMap.put("airlineID", 7);//AIRLINE_ID
     csvColumnMap.put("airportID", 11);//ORIGIN_AIRPORT_ID
@@ -94,7 +95,7 @@ public class DataSanity {
         return Boolean.parseBoolean(record[csvColumnMap.get("arrDel15")]);
       }
     } catch (NumberFormatException nfe) {
-      nfe.printStackTrace();
+      //nfe.printStackTrace();
       return false;
     }
     return true;

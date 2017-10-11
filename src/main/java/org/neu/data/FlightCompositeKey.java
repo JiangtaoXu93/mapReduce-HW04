@@ -9,100 +9,79 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class FlightCompositeKey implements WritableComparable<FlightCompositeKey> {
 
+  private Text year;
   private Text month;
-  private Text airportCode;
-  private Text airlineCode;
-  private IntWritable count;
+  private Text aaCode;
   private IntWritable recordType; //1-Airport , 2-Airline
 
   public FlightCompositeKey() {
     this.month = new Text();
-    this.airportCode = new Text();
-    this.airlineCode = new Text();
-    this.count = new IntWritable();
+    this.year = new Text();
+    this.aaCode = new Text();
     this.recordType = new IntWritable();
   }
 
-  public FlightCompositeKey(Text month, Text airportCode, Text airline,
+  public FlightCompositeKey(Text year, Text month, Text aaCode,
       IntWritable recordType) {
+    this.year = year;
     this.month = month;
-    this.airportCode = airportCode;
-    this.airlineCode = airline;
+    this.aaCode = aaCode;
     this.recordType = recordType;
-    this.count = new IntWritable(1);
   }
 
-  public FlightCompositeKey(String month, String airportCode, String airline,
-      int recordType) {
-    this(new Text(month), new Text(airportCode), new Text(airline), new IntWritable(recordType));
+  public FlightCompositeKey(String year, String month, String aaCode, int recordType) {
+    this(new Text(year), new Text(month), new Text(aaCode), new IntWritable(recordType));
   }
 
-  public static int groupCompare(FlightCompositeKey a, FlightCompositeKey b) {
-    return a.getMonth().compareTo(b.getMonth());
+  public static int compare(FlightCompositeKey a, FlightCompositeKey b) {
+    return a.compareTo(b);
   }
 
-  /*Descending Sort on Count*/
-  public static int sortCompare(FlightCompositeKey a, FlightCompositeKey b) {
-    int code = a.getMonth().compareTo(b.getMonth());
-    if (code != 0) {
-      return code;
-    }
-    return -a.getCount().compareTo(b.getCount());
+  public Text getYear() {
+    return year;
   }
 
-  public Text getMonth() {
-    return month;
+  public void setYear(Text year) {
+    this.year = year;
   }
 
-  public void setMonth(Text month) {
-    this.month = month;
+  public Text getAaCode() {
+    return aaCode;
   }
 
-  public Text getAirportCode() {
-    return airportCode;
-  }
-
-  public void setAirportCode(Text airportCode) {
-    this.airportCode = airportCode;
-  }
-
-  public Text getAirlineCode() {
-    return airlineCode;
-  }
-
-  public void setAirlineCode(Text airlineCode) {
-    this.airlineCode = airlineCode;
-  }
-
-  public IntWritable getCount() {
-    return count;
-  }
-
-  public void setCount(IntWritable count) {
-    this.count = count;
+  public void setAaCode(Text aaCode) {
+    this.aaCode = aaCode;
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
+    year.write(dataOutput);
     month.write(dataOutput);
-    airportCode.write(dataOutput);
-    airlineCode.write(dataOutput);
-    count.write(dataOutput);
+    aaCode.write(dataOutput);
     recordType.write(dataOutput);
   }
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
+    year.readFields(dataInput);
     month.readFields(dataInput);
-    airportCode.readFields(dataInput);
-    airlineCode.readFields(dataInput);
-    count.readFields(dataInput);
+    aaCode.readFields(dataInput);
     recordType.readFields(dataInput);
   }
 
   @Override
   public int compareTo(FlightCompositeKey key) {
-    return 0;
+    int code = this.year.compareTo(key.year);
+    if (code == 0) {
+      code = this.month.compareTo(key.month);
+      if (code == 0) {
+        code = this.recordType.compareTo(key.recordType);
+        if (code == 0) {
+          code = this.getAaCode().compareTo(key.getAaCode());
+        }
+      }
+    }
+    return code;
   }
 
   public IntWritable getRecordType() {
@@ -117,34 +96,27 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
   public boolean equals(Object obj) {
     if (obj instanceof FlightCompositeKey) {
       FlightCompositeKey that = (FlightCompositeKey) obj;
-      if (!recordType.equals(that.recordType) && month.equals(that.month)) {
-        return false;
-      }
-      if (1==recordType.get()) {
-        return airportCode.equals(that.getAirportCode());
-      }
-      if (2==recordType.get()) {
-        return airlineCode.equals(that.getAirlineCode());
-      }
+      return this.year.equals(that.year)
+          && this.month.equals(that.month)
+          && this.recordType.equals(that.recordType)
+          && this.getAaCode().equals(that.getAaCode());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    if (1==recordType.get()) {
-      return month.hashCode() + 167 * airportCode.hashCode();
-    } else {
-      return month.hashCode() + 167 * airlineCode.hashCode();
-    }
+    return year.hashCode()
+        + month.hashCode()
+        + recordType.hashCode()
+        + aaCode.hashCode();
   }
 
   @Override
   public String toString() {
-    return month.toString()
-        + "," + airportCode.toString()
-        + "," + airlineCode.toString()
-        + "," + count.toString()
+    return year.toString()
+        + "," + month.toString()
+        + "," + aaCode.toString()
         + "," + recordType.toString();
   }
 }

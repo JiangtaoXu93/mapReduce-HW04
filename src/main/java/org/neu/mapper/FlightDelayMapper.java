@@ -6,14 +6,14 @@ import static org.neu.util.DataSanity.isValidRecord;
 
 import com.opencsv.CSVParser;
 import java.io.IOException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.neu.comparator.FlightDataWritable;
 import org.neu.data.FlightCompositeKey;
 
-public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightCompositeKey, IntWritable> {
+public class FlightDelayMapper extends
+    Mapper<LongWritable, Text, FlightCompositeKey, FlightDataWritable> {
 
   private CSVParser csvParser = new CSVParser();
 
@@ -24,28 +24,27 @@ public class FlightDelayMapper extends Mapper<LongWritable, Text, FlightComposit
 
   public void map(LongWritable key, Text value, Context context)
       throws IOException, InterruptedException {
-    String[] flightRecord = this.csvParser.parseLine(value.toString());
-    System.out.println(flightRecord);
-    if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
-      FlightCompositeKey fKeyAirport = new FlightCompositeKey(
-          flightRecord[csvColumnMap.get("month")],
-          flightRecord[csvColumnMap.get("destAirportId")],
-          StringUtils.EMPTY,
-          1
-      );
-      FlightCompositeKey fKeyAirline = new FlightCompositeKey(
-          flightRecord[csvColumnMap.get("month")],
-          StringUtils.EMPTY,
-          flightRecord[csvColumnMap.get("airlineID")],
-          2
-      );
 
-      context.write(fKeyAirport,
-          new IntWritable(
-              (int) Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
-      context.write(fKeyAirline,
-          new IntWritable(
-              (int) Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")])));
+    String[] flightRecord = this.csvParser.parseLine(value.toString());
+
+    if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
+
+      FlightCompositeKey fKeyAirport = new FlightCompositeKey(
+          flightRecord[csvColumnMap.get("year")],
+          flightRecord[csvColumnMap.get("month")],
+          flightRecord[csvColumnMap.get("destAirportId")], 1);
+      FlightCompositeKey fKeyAirline = new FlightCompositeKey(
+          flightRecord[csvColumnMap.get("year")],
+          flightRecord[csvColumnMap.get("month")],
+          flightRecord[csvColumnMap.get("airlineID")], 2);
+
+      FlightDataWritable valueAirport = new FlightDataWritable(
+          Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")]), 1);
+      FlightDataWritable valueAirline = new FlightDataWritable(
+          Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")]), 1);
+
+      context.write(fKeyAirport, valueAirport);
+      context.write(fKeyAirline, valueAirline);
 
     }
   }
