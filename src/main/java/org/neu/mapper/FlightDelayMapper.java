@@ -9,11 +9,11 @@ import java.io.IOException;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.neu.comparator.FlightDataWritable;
-import org.neu.data.FlightCompositeKey;
+import org.neu.data.FlightDataWritable;
+import org.neu.data.FlightInfoCompositeKey;
 
 public class FlightDelayMapper extends
-    Mapper<LongWritable, Text, FlightCompositeKey, FlightDataWritable> {
+    Mapper<LongWritable, Text, FlightInfoCompositeKey, FlightDataWritable> {
 
   private CSVParser csvParser = new CSVParser();
 
@@ -31,11 +31,11 @@ public class FlightDelayMapper extends
       Float delayMinutes = Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")]) /
           Float.parseFloat(flightRecord[csvColumnMap.get("crsElapsedTime")]);
 
-      FlightCompositeKey fKeyAirport = new FlightCompositeKey(
+      FlightInfoCompositeKey fKeyAirport = new FlightInfoCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
           flightRecord[csvColumnMap.get("destAirportId")], 1);
-      FlightCompositeKey fKeyAirline = new FlightCompositeKey(
+      FlightInfoCompositeKey fKeyAirline = new FlightInfoCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
           flightRecord[csvColumnMap.get("airlineID")], 2);

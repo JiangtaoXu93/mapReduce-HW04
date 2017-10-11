@@ -1,4 +1,4 @@
-package org.neu.comparator;
+package org.neu.data;
 
 import java.io.DataInput;
 import java.io.DataOutput;

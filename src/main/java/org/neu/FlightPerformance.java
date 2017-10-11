@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.neu.job.FlightDelayJob;
+import org.neu.job.FlightDelayTopKJob;
 
 public class FlightPerformance {
 
@@ -29,7 +30,13 @@ public class FlightPerformance {
       System.out.println(">>>>>> FlightDelayJob failed.");
       throw new RuntimeException("FlightDelayJob failed.");
     }
-
+    //FlightDelayTopKJob
+    System.out.println(">>>>>> Running FlightDelayTopKJob.");
+    result = ToolRunner.run(conf, new FlightDelayTopKJob(), args);
+    if (0 != result) {
+      System.out.println(">>>>>> FlightDelayTopKJob failed.");
+      throw new RuntimeException("FlightDelayTopKJob failed.");
+    }
   }
 
   private static void cleanOutDir(String loc, Configuration conf) throws IOException {

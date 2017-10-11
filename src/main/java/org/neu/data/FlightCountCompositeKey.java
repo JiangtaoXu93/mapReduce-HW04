@@ -7,41 +7,66 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
-public class FlightCompositeKey implements WritableComparable<FlightCompositeKey> {
+public class FlightCountCompositeKey implements WritableComparable<FlightCountCompositeKey> {
 
-  private Text year;
-  private Text month;
+  private IntWritable year;
+  private IntWritable month;
   private Text aaCode;
   private IntWritable recordType; //1-Airport , 2-Airline
+  private IntWritable count;
 
-  public FlightCompositeKey() {
-    this.month = new Text();
-    this.year = new Text();
+  public FlightCountCompositeKey() {
+    this.month = new IntWritable();
+    this.year = new IntWritable();
     this.aaCode = new Text();
     this.recordType = new IntWritable();
+    this.count = new IntWritable();
   }
-
-  public FlightCompositeKey(Text year, Text month, Text aaCode,
-      IntWritable recordType) {
+  public FlightCountCompositeKey(IntWritable year, IntWritable month, Text aaCode,
+      IntWritable recordType, IntWritable count) {
     this.year = year;
     this.month = month;
     this.aaCode = aaCode;
     this.recordType = recordType;
+    this.count = count;
   }
 
-  public FlightCompositeKey(String year, String month, String aaCode, int recordType) {
-    this(new Text(year), new Text(month), new Text(aaCode), new IntWritable(recordType));
+  public FlightCountCompositeKey(Integer year, Integer month, String aaCode, Integer recordType,
+      Integer count) {
+    this(new IntWritable(year),
+        new IntWritable(month),
+        new Text(aaCode),
+        new IntWritable(recordType),
+        new IntWritable(count));
   }
 
-  public static int compare(FlightCompositeKey a, FlightCompositeKey b) {
+  public FlightCountCompositeKey(String year, String month, String aaCode, String recordType,
+      String count) {
+    this(new IntWritable(Integer.valueOf(year)),
+        new IntWritable(Integer.valueOf(month)),
+        new Text(aaCode),
+        new IntWritable(Integer.valueOf(recordType)),
+        new IntWritable(Integer.valueOf(count)));
+  }
+
+  public static int compare(
+      FlightCountCompositeKey a, FlightCountCompositeKey b) {
     return a.compareTo(b);
   }
 
-  public Text getYear() {
+  public IntWritable getMonth() {
+    return month;
+  }
+
+  public void setMonth(IntWritable month) {
+    this.month = month;
+  }
+
+  public IntWritable getYear() {
     return year;
   }
 
-  public void setYear(Text year) {
+  public void setYear(IntWritable year) {
     this.year = year;
   }
 
@@ -59,6 +84,7 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     month.write(dataOutput);
     aaCode.write(dataOutput);
     recordType.write(dataOutput);
+    count.write(dataOutput);
   }
 
   @Override
@@ -67,10 +93,11 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     month.readFields(dataInput);
     aaCode.readFields(dataInput);
     recordType.readFields(dataInput);
+    count.readFields(dataInput);
   }
 
   @Override
-  public int compareTo(FlightCompositeKey key) {
+  public int compareTo(FlightCountCompositeKey key) {
     int code = this.year.compareTo(key.year);
     if (code == 0) {
       code = this.month.compareTo(key.month);
@@ -94,12 +121,13 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlightCompositeKey) {
-      FlightCompositeKey that = (FlightCompositeKey) obj;
+    if (obj instanceof FlightCountCompositeKey) {
+      FlightCountCompositeKey that = (FlightCountCompositeKey) obj;
       return this.year.equals(that.year)
           && this.month.equals(that.month)
           && this.recordType.equals(that.recordType)
-          && this.getAaCode().equals(that.getAaCode());
+          && this.aaCode.equals(that.aaCode)
+          && this.count.equals(that.count);
     }
     return false;
   }
@@ -109,7 +137,8 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
     return year.hashCode()
         + month.hashCode()
         + recordType.hashCode()
-        + aaCode.hashCode();
+        + aaCode.hashCode()
+        + count.hashCode();
   }
 
   @Override
@@ -118,5 +147,13 @@ public class FlightCompositeKey implements WritableComparable<FlightCompositeKey
         + "," + month.toString()
         + "," + aaCode.toString()
         + "," + recordType.toString();
+  }
+
+  public IntWritable getCount() {
+    return count;
+  }
+
+  public void setCount(IntWritable count) {
+    this.count = count;
   }
 }

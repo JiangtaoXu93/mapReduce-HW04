@@ -1,23 +1,20 @@
 package org.neu.combiner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.neu.data.FlightCompositeKey;
+import org.neu.data.FlightInfoCompositeKey;
 
 /**
- * FlightDelayReducer: combine the number of flight by the same FlightCompositeKey
+ * FlightDelayReducer: combine the number of flight by the same FlightInfoCompositeKey
  *
  * @author jiangtao
  */
 public class FlightDelayCombiner extends
-    Reducer<FlightCompositeKey, IntWritable, FlightCompositeKey, IntWritable> {
+    Reducer<FlightInfoCompositeKey, IntWritable, FlightInfoCompositeKey, IntWritable> {
 
   @Override
-    public void reduce(FlightCompositeKey key, Iterable<IntWritable> values, Context context)
+    public void reduce(FlightInfoCompositeKey key, Iterable<IntWritable> values, Context context)
       throws IOException, InterruptedException {
     int count = 0;
     int totalDelay = 0;

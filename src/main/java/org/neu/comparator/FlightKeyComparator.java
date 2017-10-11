@@ -2,19 +2,19 @@ package org.neu.comparator;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-import org.neu.data.FlightCompositeKey;
+import org.neu.data.FlightInfoCompositeKey;
 
 public class FlightKeyComparator extends WritableComparator {
 
   protected FlightKeyComparator() {
-    super(FlightCompositeKey.class, true);
+    super(FlightInfoCompositeKey.class, true);
   }
 
   @Override
   public int compare(WritableComparable a, WritableComparable b) {
-    FlightCompositeKey pair1 = (FlightCompositeKey) a;
-    FlightCompositeKey pair2 = (FlightCompositeKey) b;
-    return FlightCompositeKey.compare(pair1,pair2);
+    FlightInfoCompositeKey pair1 = (FlightInfoCompositeKey) a;
+    FlightInfoCompositeKey pair2 = (FlightInfoCompositeKey) b;
+    return FlightInfoCompositeKey.compare(pair1,pair2);
 
   }
 
