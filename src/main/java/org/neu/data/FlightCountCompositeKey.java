@@ -12,6 +12,7 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
   private IntWritable year;
   private IntWritable month;
   private Text aaCode;
+  private Text aaName;
   private IntWritable recordType; //1-Airport , 2-Airline
   private IntWritable count;
 
@@ -19,33 +20,39 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
     this.month = new IntWritable();
     this.year = new IntWritable();
     this.aaCode = new Text();
+    this.aaName = new Text();
     this.recordType = new IntWritable();
     this.count = new IntWritable();
   }
 
   public FlightCountCompositeKey(IntWritable year, IntWritable month, Text aaCode,
-      IntWritable recordType, IntWritable count) {
+      Text aaName, IntWritable recordType, IntWritable count) {
     this.year = year;
     this.month = month;
     this.aaCode = aaCode;
+    this.aaName = aaName;
     this.recordType = recordType;
     this.count = count;
   }
 
-  public FlightCountCompositeKey(Integer year, Integer month, String aaCode, Integer recordType,
+  public FlightCountCompositeKey(Integer year, Integer month, String aaCode, String aaName,
+      Integer recordType,
       Integer count) {
     this(new IntWritable(year),
         new IntWritable(month),
         new Text(aaCode),
+        new Text(aaName),
         new IntWritable(recordType),
         new IntWritable(count));
   }
 
-  public FlightCountCompositeKey(String year, String month, String aaCode, String recordType,
+  public FlightCountCompositeKey(String year, String month, String aaCode, String aaName,
+      String recordType,
       String count) {
     this(new IntWritable(Integer.valueOf(year)),
         new IntWritable(Integer.valueOf(month)),
         new Text(aaCode),
+        new Text(aaName),
         new IntWritable(Integer.valueOf(recordType)),
         new IntWritable(Integer.valueOf(count)));
   }
@@ -111,6 +118,7 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
     year.write(dataOutput);
     month.write(dataOutput);
     aaCode.write(dataOutput);
+    aaName.write(dataOutput);
     recordType.write(dataOutput);
     count.write(dataOutput);
   }
@@ -120,6 +128,7 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
     year.readFields(dataInput);
     month.readFields(dataInput);
     aaCode.readFields(dataInput);
+    aaName.readFields(dataInput);
     recordType.readFields(dataInput);
     count.readFields(dataInput);
   }
@@ -174,6 +183,7 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
     return year.toString()
         + "," + month.toString()
         + "," + aaCode.toString()
+        + "," + aaName.toString()
         + "," + recordType.toString();
   }
 
@@ -183,5 +193,13 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
 
   public void setCount(IntWritable count) {
     this.count = count;
+  }
+
+  public Text getAaName() {
+    return aaName;
+  }
+
+  public void setAaName(Text aaName) {
+    this.aaName = aaName;
   }
 }

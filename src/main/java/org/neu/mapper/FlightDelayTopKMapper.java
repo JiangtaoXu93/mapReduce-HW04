@@ -11,8 +11,9 @@ public class FlightDelayTopKMapper extends
 
   private final static int YEAR = 0;
   private final static int MONTH = 1;
-  private final static int CODE = 2;
-  private final static int CODE_TYPE = 3;
+  private final static int AA_CODE = 2;
+  private final static int AA_NAME = 3;
+  private final static int RECORD_TYPE = 4;
   private final static int DELAY = 0;
   private final static int COUNT = 1;
 
@@ -25,8 +26,9 @@ public class FlightDelayTopKMapper extends
     FlightCountCompositeKey cKey = new FlightCountCompositeKey(
         keys[YEAR],
         keys[MONTH],
-        keys[CODE],
-        keys[CODE_TYPE],
+        keys[AA_CODE],
+        keys[AA_NAME],
+        keys[RECORD_TYPE],
         values[COUNT]);
 
     FloatWritable cValue = new FloatWritable(

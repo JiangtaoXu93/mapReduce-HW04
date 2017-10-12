@@ -34,11 +34,13 @@ public class FlightDelayMapper extends
       FlightInfoCompositeKey fKeyAirport = new FlightInfoCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
-          flightRecord[csvColumnMap.get("destAirportId")], 1);
+          flightRecord[csvColumnMap.get("destAirportId")],
+          flightRecord[csvColumnMap.get("destination")], 1);
       FlightInfoCompositeKey fKeyAirline = new FlightInfoCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
-          flightRecord[csvColumnMap.get("airlineID")], 2);
+          flightRecord[csvColumnMap.get("airlineID")],
+          flightRecord[csvColumnMap.get("uniqueCarrier")], 2);
 
       FlightDataWritable valueAirport = new FlightDataWritable(delayMinutes, 1);
       FlightDataWritable valueAirline = new FlightDataWritable(delayMinutes, 1);

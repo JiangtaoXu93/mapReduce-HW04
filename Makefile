@@ -42,7 +42,6 @@ compile:
 	${PROJECT_BASE}/mapper/*.java \
 	${PROJECT_BASE}/reducer/*.java \
 	${PROJECT_BASE}/data/*.java \
-	${PROJECT_BASE}/partitioner/*.java \
 	${PROJECT_BASE}/combiner/*.java \
 	${PROJECT_BASE}/comparator/*.java \
 

@@ -12,25 +12,30 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
   private Text year;
   private Text month;
   private Text aaCode;
+  private Text aaName;
   private IntWritable recordType; //1-Airport , 2-Airline
 
   public FlightInfoCompositeKey() {
     this.month = new Text();
     this.year = new Text();
     this.aaCode = new Text();
+    this.aaName = new Text();
     this.recordType = new IntWritable();
   }
 
   public FlightInfoCompositeKey(Text year, Text month, Text aaCode,
-      IntWritable recordType) {
+      Text aaName, IntWritable recordType) {
     this.year = year;
     this.month = month;
     this.aaCode = aaCode;
+    this.aaName = aaName;
     this.recordType = recordType;
   }
 
-  public FlightInfoCompositeKey(String year, String month, String aaCode, int recordType) {
-    this(new Text(year), new Text(month), new Text(aaCode), new IntWritable(recordType));
+  public FlightInfoCompositeKey(String year, String month, String aaCode, String aaName,
+      int recordType) {
+    this(new Text(year), new Text(month), new Text(aaCode), new Text(aaName),
+        new IntWritable(recordType));
   }
 
   public static int compare(FlightInfoCompositeKey a, FlightInfoCompositeKey b) {
@@ -58,6 +63,7 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
     year.write(dataOutput);
     month.write(dataOutput);
     aaCode.write(dataOutput);
+    aaName.write(dataOutput);
     recordType.write(dataOutput);
   }
 
@@ -66,6 +72,7 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
     year.readFields(dataInput);
     month.readFields(dataInput);
     aaCode.readFields(dataInput);
+    aaName.readFields(dataInput);
     recordType.readFields(dataInput);
   }
 
@@ -117,6 +124,15 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
     return year.toString()
         + "," + month.toString()
         + "," + aaCode.toString()
+        + "," + aaName.toString()
         + "," + recordType.toString();
+  }
+
+  public Text getAaName() {
+    return aaName;
+  }
+
+  public void setAaName(Text aaName) {
+    this.aaName = aaName;
   }
 }

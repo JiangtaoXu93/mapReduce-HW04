@@ -14,6 +14,7 @@ public class DataSanity {
     csvColumnMap.put("year", 0); //YEAR
     csvColumnMap.put("month", 2); //MONTH
     csvColumnMap.put("airlineID", 7);//AIRLINE_ID
+    csvColumnMap.put("uniqueCarrier", 6);//UNIQUE_CARRIER
     csvColumnMap.put("airportID", 11);//ORIGIN_AIRPORT_ID
     csvColumnMap.put("airportSeqID", 12);//ORIGIN_AIRPORT_SEQ_ID
     csvColumnMap.put("origin", 14);//ORIGIN
