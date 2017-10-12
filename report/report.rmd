@@ -1,0 +1,324 @@
+---
+title: 'A3 - Neighborhood Score: Reloaded'
+author: "Bhanu Jain (jain.b@husky.neu.edu)"
+date: "October 05, 2017"
+output:
+  html_document:
+    fig_caption: yes
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE,echo=FALSE,results='hide',message=FALSE, warning=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+require("ggplot2")
+require("gridExtra")
+knitr::opts_knit$set(root.dir = normalizePath(getwd()))
+```
+
+\newpage
+
+# Problem
+http://janvitek.org/pdpmr/f17/tasks-a3-neighborhood-score-reloaded.html
+
+# Solution
+
+There are 2 MR jobs,
+
+* Job1: `LetterCount Job`
+* Job2: `KNeighbourhoodScore Job`
+
+Details are explained in the section [architechture](#architechture).
+
+## Changes from A2
+
+* **InputFormat for Job1**
+
+
+    Instead of using default `TextInputFormat` which splits per line, wrote `WholeFileInputFormatBytes` (as mentioned in book HTDG CH8). `WholeFileInputFormatBytes` splits per file. Thus the mapper gets complete file as a record of type `RecordReader<NullWritable, BytesWritable>`. This record is driven by `WholeFileRecordReaderBytes`.
+
+* **InputFormat for Job2**
+
+
+    Similar to Job1, Job2 get the full file as input. The only change in the record type which is `RecordReader<NullWritable, Text>`. This saves a lot of memory as Job2 deals with words and we don't have to create strings from raw bytes.
+
+* **Collecting Counts in Job1 Mapper**
+
+
+    Using a temp. `map` in `LetterCountMapper` to combine letter counts. This reduces the output for each mapper. Thus less IO and less work for reducer. This is an imp. performance improvement as `LetterCountJob` has a single `reducer`.
+
+* **Combiner in Job1**
+
+
+    Using  combiner in Job1 to reduce the data/work for reducer.
+
+* **Single Reducer in Job1**
+
+
+    As the output of `LetterCountJob` is fed to Job2 through `distributed cache`, if there are multiple reducers then there will be multiple output files. Thus in order to get the letter counts, we have to read multiple Job1 output files.To avoid this `File IO` overhead,  the number of reducers for Job1 is set to `1`.
+
+    Additionally as we are collecting and combining in Job1, the reducer work is reduced to minimum.
+
+* **Using Secondary Sort in Job2 Mapper Output**
+
+
+    As we have to compute a median on the final score, the output for `KNeighborhoodScoreMapper` should be sorted on composite key `<word,score>`. This sort is necessary to calculate median. If we do not have Secondary sort then we have to manually sort score for each word in `KNeighborhoodScoreReducer` which would add `nlogn` time complexity. This is achieved by custom `compositeKey`, `partioner`,`sortComparator` and `groupComparator`. Following are the custom classes mentioned,
+
+    * `TextLongPair`
+    * `WordPartitioner`
+    * `GroupComparator`
+    * `KeyComparator`
+
+    The approach is exactly the same as mentioned in book HTDG(CH9 - Secondary Sort).
+
+    * Create a custom composite key, `<Text,LongWritable`> i.e. `<word, count>`
+    * Partition by `Text`
+    * Group by `Text`
+    * Sort by Composite Key. Order is `Text`,`LongWritable`
+
+
+
+## Architechture {#architechture}
+
+Below is the solution architecture.
+
+![](img/pdpmr-f17-bhanu-jain-a2-arc.png)
+
+*Arrows head represent the data flow.*
+
+
+1. **JOB1: LetterCount Job**
+
+
+    1a. `LetterCountMapper` takes each line as value and generates counts for each letter in that line.
+
+    ```
+    #Input k,v
+    NullWritable, BytesWritable
+    #Output k,v
+    Text, IntWritable
+    ```
+
+    1b. `LetterCountCombiner` combines the keys and feds to reducer. Same implementation as reducer. As `LetterCountReducer` is set to single instance, the combiner helps to reduce the input going into the reduces, this improving performance
+
+    ```
+    #Input k,v
+    Text, IntWritable
+    #Output k,v
+    Text, IntWritable
+    ```
+
+    1c. `LetterCountReducer` combines and sorts the keys to produce final counts.
+
+    ```
+    #Input k,v
+    Text, IntWritable
+    #Output k,v
+    Text, IntWritable
+    ```
+
+2. **JOB2: KNeighbourhoodScore Job**
+After successful completion of Job1, `KNeighbourhoodScoreJob` is triggered with input as the corpus.
+
+
+    2a. `KNeighborhoodScoreMapper` reads each line of the corpus as value with key as offset. During the `setup` it calls `LetterScore` operation go generate scores with `letter counts`. Once we have the `letter scores`, it calculates the neighbors for all the words in the line and finally the neighborhood score for that word. `K` is taken from the job configuration.
+
+    ```
+    #Input k,v
+    NullWritable, Text
+    #Output k,v
+    TextLongPair, LongWritable
+    ```
+
+    2b. `Letter Score`: In the `setup` method of each mapper we calculate the `letter score` based on `letter count` from Job1. The output of Job1 is read from `Distributed File Cache` added during Job2 configuration.
+
+    2c. `KNeighborhoodScoreReducer` sorts, combines and averages the neighborhood score for each word.
+
+    ```
+    #Input k,v
+    TextLongPair, LongWritable
+    #Output k,v
+    Text, DoubleWritable
+    ```
+
+
+# Results
+
+## Experiment 1
+
+The goal of this experiment was to compare the execution time on single thread, multi thread, pseudo mode hadoop and multi-node hadoop.
+
+```{r echo=FALSE, fig.width=10,fig.height=11}
+library(ggplot2)
+library(gridExtra)
+df.single<- read.csv("bm-a1/performanceSingle.csv")
+df.multi<- read.csv("bm-a1/performanceMulti.csv")
+df.mr<- read.csv("bm-a2/benchmark-aws-i1-k2-books-a1.csv", header = FALSE)
+colnames(df.mr) <- c("run","threads","time")
+df.combined <- rbind(df.single, df.multi)
+df.combined$run  <- gsub("Run ", "", df.combined$run)
+df.combined$threads <- gsub("Thread ", "", df.combined$threads)
+df.combined$time <- gsub("Time ", "", df.combined$time)
+df.combined <- rbind(df.combined, df.mr)
+df.combined$run <- as.numeric(df.combined$run)
+df.combined$threads <- as.numeric(df.combined$threads)
+df.combined$time <- as.numeric(df.combined$time)
+df.combined[df.combined == 0] <- 12
+df.combined$time <- df.combined$time/(1000)
+
+ggplot(df.combined, aes(x=threads, y=time, color=factor(threads))) + geom_point(size=2) + scale_y_log10(breaks=c(1,2,3,4,5,6,7,8,9,10,30,100,700,750,800,900)) + scale_x_discrete(limits=c(1,2,4,6,8,10,12)) + labs(x = "no. of threads", y="time(s)",title="Plot 1. CPU Time vs Threads",color = "Threads\n(12 represents Map Reduce Job in pseudo mode)\n")
+
+```
+
+`Plot 1.` shows the comparison over the execution time for single, multi and pseudo distributed mode. Data was collected before any Assignment 3 changes. The experiment settings were,
+
+* iterations = 10
+* k=2
+* input = http://janvitek.org/pdpmr/f17/files/books.tar.gz
+* Output Score : Mean
+* AWS EC2 with Hadoop Config used is,
+    * Pseudo Distributed with [config](https://github.ccs.neu.edu/bhanupratapjain/pdpmr-f17-bhanu-jain-a2/tree/master/conf/pseudo-distributed)
+    * Input Split [Default]: `mapreduce.input.fileinputformat.split.maxsize = Long.MAX_VALUE (i.e.,9223372036854775807)`
+
+* Machine : AWS t2.xlarge (Check section [Machine Specification](#specs)for detailed specs.)
+
+There is a clear trend where multihreading outperforms the hadoop implementation. As established in previous assignment, Pseudo Distributed mode for map-reduce fails to perform better due to limited resources and management overhead.
+
+
+```{r echo=FALSE, fig.width=10, fig.height=8}
+df.a3.c2 <- read.csv("bm-a3/benchmark-nbr-k=2-i=5-input=books-c=2.csv")
+df.a3.c2$ThreadCount <- 2
+df.a3.c4 <- read.csv("bm-a3/benchmark-nbr-k=2-i=1-input=books-c=4.csv")
+df.a3.c4$ThreadCount <- 4
+df.a3 <- rbind(df.a3.c2 , df.a3.c4)
+df.a3$TotalExecutionTime <- as.numeric(df.a3$TotalExecutionTime)
+df.a3$TotalExecutionTime <- df.a3$TotalExecutionTime/(1000)
+
+ggplot(df.a3, aes(x=ThreadCount, y=TotalExecutionTime, color=factor(ThreadCount))) + geom_point(size=2.5) + labs(x = "No of Nodes in Cluster", y="time(s)",title="Plot 2. CPU Time vs Cluster Nodes",color = "No of Nodes in Cluster") +scale_x_discrete(limits=c(2,4))
+
+```
+
+`Plot 2.` shows the total execution time for AWS EMR Cluster running on 2 and 4 nodes. Data was collected after revisions from Assignment 3. Experiment settings were,
+
+* k=2
+* iterations=5(#clusters=2) & 1(#clusters=4)
+* input = http://janvitek.org/pdpmr/f17/files/books.tar.gz
+* Hadoop Config: Multi-Node Cluster on AWS EMR
+* Input Split : Per File
+* Output Score : Median
+* Machine : AWS m4.xlarge (Check section [Machine Specification](#specs)for detailed specs.)
+
+
+With `Plot 2.` we can clearly see that 4 node cluster outperforms 2 node cluster by almost half. We can see a slight variation on 2 node cluster. This is might be due network, file IO and memory management on the nodes. This is evident from `Plot 4.` later.
+
+
+```{r echo=FALSE }
+df.bar <- data.frame(cluster=c(2,4),meanExecutionTime=c( mean(df.a3.c2[,c("TotalExecutionTime")]),df.a3.c4[,c("TotalExecutionTime")]))
+df.bar$meanExecutionTime <- df.bar$meanExecutionTime/1000
+ggplot(df.bar, aes(x=cluster, y=factor(meanExecutionTime))) + geom_bar(stat = "identity")+scale_x_discrete(limits=c(2,4))  + labs(x = "No of Nodes in Cluster", y="Mean Execution Time (s)",title="Plot 3. Mean Execution Time vs # of Cluster Nodes")
+```
+
+
+`Plot 3.` compares the mean execution time for 2 and 4 node cluster. Data was collected with the same settings as collected for `Plot 2.`
+
+
+```{r echo=FALSE }
+library(reshape)
+df.job <- df.a3.c2[,c("Iteration","LetterCountExecutionTime","KNExecutionTime")]
+colnames(df.job) <- c("Iteration","LetterCountJob","KNeighbourhoodScoreJob")
+df.job <- melt(df.job, id=c("Iteration"))
+colnames(df.job) <- c("Iteration","Job","ExecutionTime")
+df.job$ExecutionTime <- df.job$ExecutionTime/1000
+ggplot(df.job, aes(x=Iteration, y=ExecutionTime, fill=Job)) +
+    geom_bar(stat="identity", position=position_dodge()) + labs(x = "Iterations", y="Execution Time (s)",title="Plot 4. Execution Time vs Hadoop Job")
+
+
+```
+
+`Plot 4.` shows the execution time for individual job for input `books`, k=2 , cluster-nodes=2, spread across 5 iterations. We can clearly see that `LetterCountJob` is very stable and just below 200s, whereas `KNeighbourhoodScoreJob` sees some variation.
+
+Job1 being less map intensive job, we operate on individual bytes rather than strings. Additionally there are almost no string operations, which leads to less memory usage and better stable performance.
+
+Job2 deals with String words. There are a lot of string operations including splitting and escaping. Additionally there is a Secondary Sort happening on the mapper output. All these factors might indicate bad and fluctuating performance for Job2.
+
+
+## Experiment 2
+
+The goal here is to run `big-corpus` on 2 and 4 node clusters. With the current implementation, Job2 failed with `YarnChild` running out of heap space.
+```
+2017-10-06 14:02:54,607 ERROR [main] org.apache.hadoop.mapred.YarnChild: Error running child : java.lang.OutOfMemoryError: Java heap space
+	at java.util.Arrays.copyOf(Arrays.java:3181)
+	at java.util.ArrayList.grow(ArrayList.java:261)
+	at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:235)
+	at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:227)
+	at java.util.ArrayList.add(ArrayList.java:458)
+	at java.util.regex.Pattern.split(Pattern.java:1217)
+	at java.util.regex.Pattern.split(Pattern.java:1273)
+	at org.neu.util.TextUtils.getWordsFromText(TextUtils.java:20)
+	at org.neu.mapper.KNeighborhoodScoreMapper.map(KNeighborhoodScoreMapper.java:110)
+	at org.neu.mapper.KNeighborhoodScoreMapper.map(KNeighborhoodScoreMapper.java:28)
+	at org.apache.hadoop.mapreduce.Mapper.run(Mapper.java:146)
+	at org.apache.hadoop.mapred.MapTask.runNewMapper(MapTask.java:796)
+	at org.apache.hadoop.mapred.MapTask.run(MapTask.java:342)
+	at org.apache.hadoop.mapred.YarnChild$2.run(YarnChild.java:164)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at javax.security.auth.Subject.doAs(Subject.java:422)
+	at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1698)
+	at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:158)
+```
+
+Tried multiple AWS Machines
+```
+make cloud-custom REPETITIONS=1 INPUT_TYPE=big-corpus AWS_NUM_NODES=1 AWS_INSTANCE_TYPE=m2.xlarge
+make cloud-custom REPETITIONS=1 INPUT_TYPE=big-corpus AWS_NUM_NODES=1 AWS_INSTANCE_TYPE=m4.xlarge
+make cloud-custom REPETITIONS=1 INPUT_TYPE=big-corpus AWS_NUM_NODES=1 AWS_INSTANCE_TYPE=r3.xlarge
+make cloud-custom REPETITIONS=1 INPUT_TYPE=big-corpus AWS_NUM_NODES=1 AWS_INSTANCE_TYPE=r3.2xlarge
+```
+
+with custom config (changing parameters acc. to machine) as,
+
+```
+		--configurations file://conf/aws/config.json
+
+[
+  {
+    "Classification": "mapred-site",
+    "Properties": {
+      "mapreduce.map.memory.mb": "8192",
+        "mapreduce.reduce.memory.mb": "4096",
+      "mapreduce.map.java.opts": "-Xmx7168m",
+      "mapreduce.reduce.java.opts": "-Xmx3072m"
+    }
+  }
+]
+```
+
+
+Nothing seems to work as there is clearly a huge memory burden on heap with Whole File as input. One observation here is that Job1 always succeeds and it is Job 2 that fails. String operations have a big impact on memory on Job2.
+
+
+## Conclusion
+
+* Multinode cluster gave a significant performance improvement. Performance improved by 2x with 2 x number of nodes. This is as expected.
+* Heap Space is very sacred in MR jobs. We should utilize it wisely.
+* Strings are very costly in terms of memory. Limit string manipulations to minimum.
+
+## Improvements
+* Improve heap performance.
+
+
+## Machine Specifications {#specs}
+
+* **AWS t2.xlarge**
+    * vCPUs : 4
+    * RAM (GiB)	: 16.0
+    * SSD : 200 GB
+    * OS : Ubuntu 16.04 LTS
+    * Hadoop : Pseudo Distributed
+
+* **AWS m4.xlarge**
+    * vCPUs : 4
+    * RAM (GiB)	: 16.0
+    * Hadoop : EMR
