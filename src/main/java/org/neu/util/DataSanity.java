@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 public class DataSanity {
 
   public static Map<String, Integer> csvColumnMap = new HashMap<>();
+  private static final int FLIGHT_DELAY_FACTOR = 4;
 
   /*Initializes map containing CSV Column Mapping*/
   public static void initCsvColumnMap() {
@@ -25,15 +26,15 @@ public class DataSanity {
     csvColumnMap.put("stateName", 27);//DEST_STATE_NM
     csvColumnMap.put("wac", 28);//DEST_WAC
     csvColumnMap.put("crsDepTime", 29);//CRS_DEP_TIME
+    csvColumnMap.put("depTime", 30);//DEP_TIME
     csvColumnMap.put("crsArrTime", 40);//CRS_ARR_TIME
     csvColumnMap.put("arrTime", 41);//ARR_TIME
-    csvColumnMap.put("depTime", 30);//DEP_TIME
-    csvColumnMap.put("actualElapsedTime", 51);//ActualElapsedTime
-    csvColumnMap.put("arrDelay", 42);//ArrDelay
-    csvColumnMap.put("arrDelayMinutes", 43);//ArrDelayNew
+    csvColumnMap.put("arrDelay", 42);//ARR_Delay
+    csvColumnMap.put("arrDelayMinutes", 43);//ARR_DELAY_NEW
     csvColumnMap.put("arrDel15", 44);//ARR_DEL15
     csvColumnMap.put("cancelled", 47);//CANCELLED
     csvColumnMap.put("crsElapsedTime", 50);//CRS_ELAPSED_TIME
+    csvColumnMap.put("actualElapsedTime", 51);//ActualElapsedTime
   }
 
   /**
@@ -78,7 +79,7 @@ public class DataSanity {
       arrDelayMinutes = (int) Float.parseFloat(record[csvColumnMap.get("arrDelayMinutes")]);
 
       // A cancelled flight counts as being delay 4 times the CRSElapsedTime
-      if (arrDelay == 4 * crsElapsedTime) {
+      if (arrDelayMinutes >= FLIGHT_DELAY_FACTOR * crsElapsedTime) {
         return false;
       }
 
