@@ -12,12 +12,11 @@ import org.apache.hadoop.util.Tool;
 import org.neu.comparator.FlightSortComparator;
 import org.neu.data.FlightCountCompositeKey;
 import org.neu.mapper.FlightDelayTopKMapper;
-import org.neu.comparator.FlightGroupComparator;
 import org.neu.reducer.FlightDelayTopKReducer;
 
 public class FlightDelayTopKJob extends Configured implements Tool {
 
-  public static String SEPERATOR = "mapreduce.output.textoutputformat.separator";
+  private static String OUTPUT_SEPARATOR = "mapreduce.output.textoutputformat.separator";
 
   @Override
   public int run(String[] args) throws Exception {
@@ -25,19 +24,16 @@ public class FlightDelayTopKJob extends Configured implements Tool {
     Job job = Job.getInstance(getConf(), "FlightDelayTopKJob");
     job.setJarByClass(this.getClass());
 
-    FileInputFormat.addInputPath(job, new Path(args[2] + "/flightDelay"));
-    FileOutputFormat.setOutputPath(job, new Path(args[2] + "/flightDelaySorted"));
+    FileInputFormat.addInputPath(job, new Path(args[3] + "/flightDelay"));
+    FileOutputFormat.setOutputPath(job, new Path(args[3] + "/flightDelaySorted"));
 
     job.setMapperClass(FlightDelayTopKMapper.class);
     job.setReducerClass(FlightDelayTopKReducer.class);
 
-//    job.setPartitionerClass(FlightPartitioner.class);
-//    job.setGroupingComparatorClass(FlightGroupComparator.class);
-
     job.setSortComparatorClass(FlightSortComparator.class);
 
     job.setInputFormatClass(KeyValueTextInputFormat.class);
-    job.getConfiguration().set(SEPERATOR, ",");
+    job.getConfiguration().set(OUTPUT_SEPARATOR, ",");
     job.setMapOutputKeyClass(FlightCountCompositeKey.class);
     job.setMapOutputValueClass(FloatWritable.class);
 

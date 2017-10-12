@@ -16,47 +16,21 @@ public class FlightDelayTopKMapper extends
   private final static int DELAY = 0;
   private final static int COUNT = 1;
 
-  /*private static TreeMap<FlightCountCompositeKey, FloatWritable> sortAirportMap = new TreeMap<>(
-      new FlightCountComparator());
-
-  private static TreeMap<FlightCountCompositeKey, FloatWritable> sortAirlineMap = new TreeMap<>(
-      new FlightCountComparator());*/
-
   public void map(Text key, Text value, Context context)
       throws IOException, InterruptedException {
 
     String[] keys = key.toString().split(",");
     String[] values = value.toString().split(",");
 
-    FlightCountCompositeKey cKey = new FlightCountCompositeKey(keys[YEAR], keys[MONTH], keys[CODE],
+    FlightCountCompositeKey cKey = new FlightCountCompositeKey(
+        keys[YEAR],
+        keys[MONTH],
+        keys[CODE],
         keys[CODE_TYPE],
         values[COUNT]);
 
     FloatWritable cValue = new FloatWritable(
         Float.parseFloat(values[DELAY]) / Integer.parseInt(values[COUNT]));
-
     context.write(cKey, cValue);
-    /*if (1 == cKey.getRecordType().get()) {
-      sortAirportMap.put(cKey, cValue);
-    } else {
-      sortAirlineMap.put(cKey, cValue);
-    }
-
-    if (sortAirportMap.size() > 5) {
-      sortAirportMap.remove(sortAirportMap.lastKey());
-    }
-    if (sortAirlineMap.size() > 5) {
-      sortAirlineMap.remove(sortAirlineMap.lastKey());
-    }*/
   }
-
-  /*@Override
-  protected void cleanup(Context context) throws IOException, InterruptedException {
-    for (Map.Entry<FlightCountCompositeKey, FloatWritable> entry : sortAirportMap.entrySet()) {
-      context.write(entry.getKey(), entry.getValue());
-    }
-    for (Map.Entry<FlightCountCompositeKey, FloatWritable> entry : sortAirlineMap.entrySet()) {
-      context.write(entry.getKey(), entry.getValue());
-    }
-  }*/
 }

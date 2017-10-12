@@ -19,8 +19,8 @@ public class FlightDelayJob extends Configured implements Tool {
     Job job = Job.getInstance(getConf(), "FlightDelayJob");
     job.setJarByClass(this.getClass());
 
-    FileInputFormat.addInputPath(job, new Path(args[1]));
-    FileOutputFormat.setOutputPath(job, new Path(args[2] + "/flightDelay"));
+    FileInputFormat.addInputPath(job, new Path(args[2]));
+    FileOutputFormat.setOutputPath(job, new Path(args[3] + "/flightDelay"));
 
     job.setMapperClass(FlightDelayMapper.class);
     job.setCombinerClass(FlightDelayReducer.class);
