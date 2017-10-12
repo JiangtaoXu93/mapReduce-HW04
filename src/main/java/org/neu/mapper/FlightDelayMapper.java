@@ -28,9 +28,8 @@ public class FlightDelayMapper extends
     String[] flightRecord = this.csvParser.parseLine(value.toString());
 
     if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
-      Float delayMinutes = Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")]) /
-          Float.parseFloat(flightRecord[csvColumnMap.get("crsElapsedTime")]);
 
+      Float delayMinutes = getDelayMinutes(flightRecord);
       FlightInfoCompositeKey fKeyAirport = new FlightInfoCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
@@ -42,12 +41,20 @@ public class FlightDelayMapper extends
           flightRecord[csvColumnMap.get("airlineID")],
           flightRecord[csvColumnMap.get("uniqueCarrier")], 2);
 
-      FlightDataWritable valueAirport = new FlightDataWritable(delayMinutes, 1);
-      FlightDataWritable valueAirline = new FlightDataWritable(delayMinutes, 1);
-
-      context.write(fKeyAirport, valueAirport);
-      context.write(fKeyAirline, valueAirline);
+      context.write(fKeyAirport, new FlightDataWritable(delayMinutes, 1));
+      context.write(fKeyAirline, new FlightDataWritable(delayMinutes, 1));
 
     }
+  }
+
+  private Float getDelayMinutes(String[] flightRecord) {
+    Float delay;
+    if (Integer.parseInt(flightRecord[csvColumnMap.get("cancelled")]) == 1) {
+      delay = 4F;
+    } else {
+      delay = Float.parseFloat(flightRecord[csvColumnMap.get("arrDelayMinutes")]) /
+          Float.parseFloat(flightRecord[csvColumnMap.get("crsElapsedTime")]);
+    }
+    return delay;
   }
 }

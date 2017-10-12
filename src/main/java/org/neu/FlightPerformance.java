@@ -49,6 +49,7 @@ public class FlightPerformance {
     //FlightDelayJob
     d1 = System.nanoTime();
     System.out.println(String.format(">>>>>> Running FlightDelayJob [Iteration=%s, K=%s]",bmd.getIteration(),bmd.getK() ));
+    conf.setInt(TOP_K_COUNT_CONF_KEY, Integer.valueOf(args[1]));
     result = ToolRunner.run(conf, new FlightDelayJob(), args);
     if (0 != result) {
       System.out.println(">>>>>> FlightDelayJob failed.");
@@ -61,7 +62,6 @@ public class FlightPerformance {
     d1 = System.nanoTime();
     d2 = 0L;
     System.out.println(String.format(">>>>>> Running FlightDelayTopKJob [Iteration=%s, K=%s]",bmd.getIteration(),bmd.getK() ));
-    conf.setInt(TOP_K_COUNT_CONF_KEY, Integer.valueOf(args[1]));
     result = ToolRunner.run(conf, new FlightDelayTopKJob(), args);
     if (0 != result) {
       System.out.println(">>>>>> FlightDelayTopKJob failed.");

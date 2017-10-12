@@ -9,21 +9,21 @@ import org.apache.hadoop.io.WritableComparable;
 
 public class FlightInfoCompositeKey implements WritableComparable<FlightInfoCompositeKey> {
 
-  private Text year;
-  private Text month;
-  private Text aaCode;
+  private IntWritable year;
+  private IntWritable month;
+  private IntWritable aaCode;
   private Text aaName;
   private IntWritable recordType; //1-Airport , 2-Airline
 
   public FlightInfoCompositeKey() {
-    this.month = new Text();
-    this.year = new Text();
-    this.aaCode = new Text();
+    this.month = new IntWritable();
+    this.year = new IntWritable();
+    this.aaCode = new IntWritable();
     this.aaName = new Text();
     this.recordType = new IntWritable();
   }
 
-  public FlightInfoCompositeKey(Text year, Text month, Text aaCode,
+  public FlightInfoCompositeKey(IntWritable year, IntWritable month, IntWritable aaCode,
       Text aaName, IntWritable recordType) {
     this.year = year;
     this.month = month;
@@ -34,7 +34,8 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
 
   public FlightInfoCompositeKey(String year, String month, String aaCode, String aaName,
       int recordType) {
-    this(new Text(year), new Text(month), new Text(aaCode), new Text(aaName),
+    this(new IntWritable(Integer.valueOf(year)), new IntWritable(Integer.valueOf(month)),
+        new IntWritable(Integer.valueOf(aaCode)), new Text(aaName),
         new IntWritable(recordType));
   }
 
@@ -42,21 +43,6 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
     return a.compareTo(b);
   }
 
-  public Text getYear() {
-    return year;
-  }
-
-  public void setYear(Text year) {
-    this.year = year;
-  }
-
-  public Text getAaCode() {
-    return aaCode;
-  }
-
-  public void setAaCode(Text aaCode) {
-    this.aaCode = aaCode;
-  }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
@@ -78,11 +64,11 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
 
   @Override
   public int compareTo(FlightInfoCompositeKey key) {
-    int code = this.year.compareTo(key.year);
+    int code = this.year.compareTo(key.getYear());
     if (code == 0) {
-      code = this.month.compareTo(key.month);
+      code = this.month.compareTo(key.getMonth());
       if (code == 0) {
-        code = this.recordType.compareTo(key.recordType);
+        code = this.recordType.compareTo(key.getRecordType());
         if (code == 0) {
           code = this.getAaCode().compareTo(key.getAaCode());
         }
@@ -91,22 +77,15 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
     return code;
   }
 
-  public IntWritable getRecordType() {
-    return recordType;
-  }
-
-  public void setRecordType(IntWritable recordType) {
-    this.recordType = recordType;
-  }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof FlightInfoCompositeKey) {
       FlightInfoCompositeKey that = (FlightInfoCompositeKey) obj;
-      return this.year.equals(that.year)
-          && this.month.equals(that.month)
-          && this.recordType.equals(that.recordType)
-          && this.aaCode.equals(that.aaCode);
+      return this.year.equals(that.getYear())
+          && this.month.equals(that.getMonth())
+          && this.recordType.equals(that.getRecordType())
+          && this.aaCode.equals(that.getAaCode());
     }
     return false;
   }
@@ -135,4 +114,37 @@ public class FlightInfoCompositeKey implements WritableComparable<FlightInfoComp
   public void setAaName(Text aaName) {
     this.aaName = aaName;
   }
+
+  public IntWritable getRecordType() {
+    return recordType;
+  }
+
+  public void setRecordType(IntWritable recordType) {
+    this.recordType = recordType;
+  }
+
+  public IntWritable getMonth() {
+    return month;
+  }
+
+  public void setMonth(IntWritable month) {
+    this.month = month;
+  }
+
+  public IntWritable getYear() {
+    return year;
+  }
+
+  public void setYear(IntWritable year) {
+    this.year = year;
+  }
+
+  public IntWritable getAaCode() {
+    return aaCode;
+  }
+
+  public void setAaCode(IntWritable aaCode) {
+    this.aaCode = aaCode;
+  }
+
 }

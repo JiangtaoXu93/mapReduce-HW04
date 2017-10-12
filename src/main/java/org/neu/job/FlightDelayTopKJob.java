@@ -24,11 +24,12 @@ public class FlightDelayTopKJob extends Configured implements Tool {
     Job job = Job.getInstance(getConf(), "FlightDelayTopKJob");
     job.setJarByClass(this.getClass());
 
-    FileInputFormat.addInputPath(job, new Path(args[3] + "/flightDelay"));
+    FileInputFormat.addInputPath(job, new Path(args[3] + "/flightDelay/reducedFlightData-r-00000"));
     FileOutputFormat.setOutputPath(job, new Path(args[3] + "/flightDelaySorted"));
 
     job.setMapperClass(FlightDelayTopKMapper.class);
     job.setReducerClass(FlightDelayTopKReducer.class);
+    job.setNumReduceTasks(1);
 
     job.setSortComparatorClass(FlightSortComparator.class);
 
@@ -39,6 +40,8 @@ public class FlightDelayTopKJob extends Configured implements Tool {
 
     job.setOutputKeyClass(FlightCountCompositeKey.class);
     job.setOutputValueClass(Text.class);
+
+    job.addCacheFile(new Path(args[3] + "/flightDelay/mostBusyData-r-00000").toUri());
 
     return job.waitForCompletion(true) ? 0 : 1;
   }

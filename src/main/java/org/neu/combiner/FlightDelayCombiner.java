@@ -1,8 +1,8 @@
 package org.neu.combiner;
 
 import java.io.IOException;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.neu.data.FlightDataWritable;
 import org.neu.data.FlightInfoCompositeKey;
 
 /**
@@ -11,19 +11,20 @@ import org.neu.data.FlightInfoCompositeKey;
  * @author jiangtao
  */
 public class FlightDelayCombiner extends
-    Reducer<FlightInfoCompositeKey, IntWritable, FlightInfoCompositeKey, IntWritable> {
+    Reducer<FlightInfoCompositeKey, FlightDataWritable, FlightInfoCompositeKey, FlightDataWritable> {
 
   @Override
-    public void reduce(FlightInfoCompositeKey key, Iterable<IntWritable> values, Context context)
+  public void reduce(FlightInfoCompositeKey key, Iterable<FlightDataWritable> values,
+      Context context)
       throws IOException, InterruptedException {
+
     int count = 0;
-    int totalDelay = 0;
-    for (IntWritable value : values) {
-      totalDelay += value.get();
-      count++;
+    float totalDelay = 0;
+    for (FlightDataWritable value : values) {
+      totalDelay += value.getDelay().get();
+      count += value.getCount().get();
     }
-//    key.setCount(new IntWritable(count));
-    context.write(key, new IntWritable(totalDelay));
+    context.write(key, new FlightDataWritable(totalDelay, count));
   }
 
 }

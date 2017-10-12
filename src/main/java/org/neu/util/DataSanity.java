@@ -79,10 +79,6 @@ public class DataSanity {
       arrDelay = (int) Float.parseFloat(record[csvColumnMap.get("arrDelay")]);
       arrDelayMinutes = (int) Float.parseFloat(record[csvColumnMap.get("arrDelayMinutes")]);
 
-      // A cancelled flight counts as being delay 4 times the CRSElapsedTime
-      if (arrDelayMinutes >= FLIGHT_DELAY_FACTOR * crsElapsedTime) {
-        return false;
-      }
 
       // CRSArrTime and CRSDepTime and CRSElapsedTime should not be zero
       if (crsArrTime == 0 || crsDepTime == 0 || crsElapsedTime == 0) {

@@ -1,4 +1,5 @@
 REPETITIONS = 1
+TOP_K=5
 HADOOP_HOME=/usr/local/hadoop
 HADOOP_VERSION=2.8.1
 MY_CLASSPATH=${HADOOP_HOME}/share/hadoop/common/hadoop-common-${HADOOP_VERSION}.jar:${HADOOP_HOME}/share/hadoop/mapreduce/*:lib/*:lib/commons-lang3-3.6/*:lib/commons-lang-2.6/*:out:.
@@ -17,7 +18,7 @@ JOB_NAME=FlightPerformance
 #  - Joseph Sackett -> http://www.ccis.northeastern.edu/people/joseph-sackett/
 AWS_EMR_RELEASE=emr-5.8.0
 AWS_REGION=us-east-1
-AWS_BUCKET_NAME=MR-FlightPerformance
+AWS_BUCKET_NAME=mr-flightperformance
 AWS_SUBNET_ID=subnet-51e4fd7a
 AWS_INPUT=${INPUT_FOLDER}
 AWS_OUTPUT=${OUTPUT_FOLDER}
@@ -51,7 +52,7 @@ jar:
 	mv out/${JAR_NAME} .
 
 run:
-	${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} ${REPETITIONS} ${INPUT_FOLDER} ${OUTPUT_FOLDER} ${REPORT_FOLDER}
+	${HADOOP_HOME}/bin/hadoop jar ${JAR_NAME} ${REPETITIONS} ${TOP_K} ${INPUT_FOLDER} ${OUTPUT_FOLDER} ${REPORT_FOLDER}
 
 clean:
 	$(HADOOP_HOME)/bin/hdfs dfs -rm -r output;
@@ -96,11 +97,11 @@ upload-app-aws:
 # Main EMR launch.
 cloud: build upload-app-aws delete-output-aws
 	aws emr create-cluster \
-		--name "Neighborhood Cluster" \
+		--name "Flight Performance" \
 		--release-label ${AWS_EMR_RELEASE} \
 		--instance-groups InstanceCount=${AWS_NUM_NODES},InstanceGroupType=CORE,InstanceType=${AWS_INSTANCE_TYPE} InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${AWS_INSTANCE_TYPE} \
 	    --applications Name=Hadoop \
-	    --steps Args=${REPETITIONS},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
+	    --steps Args=${REPETITIONS},${TOP_K},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
 		--log-uri s3://${AWS_BUCKET_NAME}/${AWS_LOG_DIR} \
 		--service-role EMR_DefaultRole \
 		--ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=${AWS_SUBNET_ID} \
@@ -110,11 +111,11 @@ cloud: build upload-app-aws delete-output-aws
 
 cloud-custom: build upload-app-aws delete-output-aws
 	aws emr create-cluster \
-		--name "Neighborhood Cluster" \
+		--name "Flight Performance" \
 		--release-label ${AWS_EMR_RELEASE} \
 		--instance-groups InstanceCount=${AWS_NUM_NODES},InstanceGroupType=CORE,InstanceType=${AWS_INSTANCE_TYPE} InstanceCount=1,InstanceGroupType=MASTER,InstanceType=${AWS_INSTANCE_TYPE} \
 	    --applications Name=Hadoop \
-	    --steps Args=${REPETITIONS},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
+	    --steps Args=${REPETITIONS},${TOP_K},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
 		--log-uri s3://${AWS_BUCKET_NAME}/${AWS_LOG_DIR} \
 		--service-role EMR_DefaultRole \
 		--ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=${AWS_SUBNET_ID} \
@@ -122,6 +123,20 @@ cloud-custom: build upload-app-aws delete-output-aws
 		--enable-debugging \
 		--auto-terminate \
 		--configurations file://conf/aws/config.json
+
+cloud-big: build upload-app-aws delete-output-aws
+	aws emr create-cluster \
+		--name "Flight Performance" \
+		--release-label ${AWS_EMR_RELEASE} \
+		--instance-groups InstanceCount=${AWS_NUM_NODES},InstanceGroupType=CORE,InstanceType=${AWS_INSTANCE_TYPE} InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m4.large \
+	    --applications Name=Hadoop \
+	    --steps Args=${REPETITIONS},${TOP_K},s3://${AWS_BUCKET_NAME}/${AWS_INPUT}/${INPUT_TYPE},s3://${AWS_BUCKET_NAME}/${AWS_OUTPUT},s3://${AWS_BUCKET_NAME}/${REPORT_FOLDER},Type=CUSTOM_JAR,Jar=s3://${AWS_BUCKET_NAME}/${JAR_NAME},ActionOnFailure=TERMINATE_CLUSTER,Name=${JOB_NAME} \
+		--log-uri s3://${AWS_BUCKET_NAME}/${AWS_LOG_DIR} \
+		--service-role EMR_DefaultRole \
+		--ec2-attributes InstanceProfile=EMR_EC2_DefaultRole,SubnetId=${AWS_SUBNET_ID} \
+		--region ${AWS_REGION} \
+		--enable-debugging \
+		--auto-terminate
 
 # Download output from S3.
 download-output-aws: clean-local-output
