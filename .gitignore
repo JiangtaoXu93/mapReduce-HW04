@@ -24,6 +24,6 @@ hs_err_pid*
 *.iml
 output
 out/org
-input/all
+input/
 FlightPerformance.jar
 target/

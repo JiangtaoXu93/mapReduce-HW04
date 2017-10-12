@@ -117,7 +117,6 @@ public class DataSanity {
 
 
     } catch (NumberFormatException nfe) {
-      //nfe.printStackTrace();
       return false;
     }
     return true;

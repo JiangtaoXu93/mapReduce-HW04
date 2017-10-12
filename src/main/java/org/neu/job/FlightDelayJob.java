@@ -27,6 +27,7 @@ public class FlightDelayJob extends Configured implements Tool {
 
     FileInputFormat.addInputPath(job, new Path(args[2]));
     FileOutputFormat.setOutputPath(job, new Path(args[3] + "/flightDelay"));
+
     MultipleOutputs.addNamedOutput(job, "reducedFlightData", TextOutputFormat.class, FlightInfoCompositeKey.class,
             FlightDataWritable.class);
     MultipleOutputs.addNamedOutput(job, "mostBusyData", TextOutputFormat.class, Text.class,
