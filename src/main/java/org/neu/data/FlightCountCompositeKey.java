@@ -22,6 +22,7 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
     this.recordType = new IntWritable();
     this.count = new IntWritable();
   }
+
   public FlightCountCompositeKey(IntWritable year, IntWritable month, Text aaCode,
       IntWritable recordType, IntWritable count) {
     this.year = year;
@@ -49,9 +50,36 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
         new IntWritable(Integer.valueOf(count)));
   }
 
+  public static int grouoCompare(
+      FlightCountCompositeKey o1, FlightCountCompositeKey o2) {
+    int value = o1.getYear().compareTo(o2.getYear());
+    if (value == 0) {
+      value = o1.getMonth().compareTo(o2.getMonth());
+      if (value == 0) {
+        value = o1.getRecordType().compareTo(o2.getRecordType());
+
+      }
+    }
+    return value;
+  }
+
   public static int compare(
-      FlightCountCompositeKey a, FlightCountCompositeKey b) {
-    return a.compareTo(b);
+      FlightCountCompositeKey o1, FlightCountCompositeKey o2) {
+    int value = o1.getYear().compareTo(o2.getYear());
+    if (value == 0) {
+      value = o1.getMonth().compareTo(o2.getMonth());
+      if (value == 0) {
+        value = o1.getRecordType().compareTo(o2.getRecordType());
+        if (value == 0) {
+          /*Descending Sort*/
+          value = -o1.getCount().compareTo(o2.getCount());
+          if (value == 0) {
+            value = o1.getAaCode().compareTo(o2.getAaCode());
+          }
+        }
+      }
+    }
+    return value;
   }
 
   public IntWritable getMonth() {

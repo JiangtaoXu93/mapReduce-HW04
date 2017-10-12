@@ -9,8 +9,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
+import org.neu.comparator.FlightSortComparator;
 import org.neu.data.FlightCountCompositeKey;
 import org.neu.mapper.FlightDelayTopKMapper;
+import org.neu.comparator.FlightGroupComparator;
 import org.neu.reducer.FlightDelayTopKReducer;
 
 public class FlightDelayTopKJob extends Configured implements Tool {
@@ -29,7 +31,10 @@ public class FlightDelayTopKJob extends Configured implements Tool {
     job.setMapperClass(FlightDelayTopKMapper.class);
     job.setReducerClass(FlightDelayTopKReducer.class);
 
-    //    job.setPartitionerClass(FlightPartitioner.class);
+//    job.setPartitionerClass(FlightPartitioner.class);
+//    job.setGroupingComparatorClass(FlightGroupComparator.class);
+
+    job.setSortComparatorClass(FlightSortComparator.class);
 
     job.setInputFormatClass(KeyValueTextInputFormat.class);
     job.getConfiguration().set(SEPERATOR, ",");
