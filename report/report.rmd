@@ -266,7 +266,7 @@ ggplot(df.airline, aes(x=name, y=delay, fill=name)) +
 df.airport.month.mean.sd <- df.airport[,list(mean=mean(delay),sd=sd(delay)),by=month]
 df.airport.month.mean.sd$mean <-round(df.airport.month.mean.sd$mean,4)
 ggplot(df.airport.month.mean.sd, aes(x=month, y=factor(mean), fill=factor(month))) +
-  geom_bar(stat='identity') + theme(legend.position="none") + labs(x = "Months", y="Total Mean Delay",title="Plot 5. Total Mean Delay Across Months") +    guides(fill=FALSE) + scale_x_continuous(breaks=unique(df.airport.month.mean.sd$month)) 
+  geom_bar(stat='identity') + theme(legend.position="none") + labs(x = "Months", y="Total Mean Delay",title="Plot 5. Sesonal Trends for Delays") +    guides(fill=FALSE) + scale_x_continuous(breaks=unique(df.airport.month.mean.sd$month)) 
   
 ``` 
 
