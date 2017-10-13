@@ -19,6 +19,9 @@ import org.neu.data.FlightDataWritable;
 import org.neu.data.FlightDelayCompositeKey;
 
 /**
+ * FlightDelayReducer: Reducer class:For the same key, calculate the total delay time and count of flight, 
+ * and store the new data into map; Then according to the flight count, sort the map, filter top K flight count,
+ * output the result.
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayReducer extends
@@ -65,7 +68,7 @@ public class FlightDelayReducer extends
   }
 
   /**
-   * increaseFlightCount stores global flight counts for airlines/airports
+   * IncreaseFlightCount stores global flight counts for airlines/airports
    */
   private void increaseFlightCount(FlightDelayCompositeKey key, int count) {
     if (key.getRecordType().get() == 1) {
@@ -78,6 +81,9 @@ public class FlightDelayReducer extends
   }
 
   @Override
+  /**
+   * After reduce, sort the result by value, filter top K busy airpot/airline and output the result
+   */
   protected void cleanup(Context context) throws IOException, InterruptedException {
     // sort airportFlightCount,airlineFlightCount
     sortCountMaps();
@@ -113,6 +119,9 @@ public class FlightDelayReducer extends
     }
   }
 
+  /**
+   * Sort map by their value
+   */
   private void sortCountMaps() {
     for (Map.Entry<Integer, Integer> entry : airportFlightCount.entrySet()) {
       airportFlightCountSorted.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
@@ -122,11 +131,18 @@ public class FlightDelayReducer extends
     }
   }
 
+
+  /**
+   * Write most busy aiport and airline data separately
+   */
   private void writeMostBusy() throws IOException, InterruptedException {
     writeSortedSet(airportFlightCountSorted, 1, "mostBusyAirportData");
     writeSortedSet(airlineFlightCountSorted, 2, "mostBusyAirlineData");
   }
 
+  /**
+   * Write top k busy aiport and airline data 
+   */
   private void writeSortedSet(SortedSet<FlightCodeCountKeyPair> sortedSet, int recordType,
       String outputFile)
       throws IOException, InterruptedException {

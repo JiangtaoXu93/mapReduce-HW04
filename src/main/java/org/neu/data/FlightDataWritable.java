@@ -8,10 +8,11 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
 
 /**
+ * FlightDataWritable: the pair values of output of map, includes delay and count
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDataWritable implements Writable {
-	// the value part of 1st map output pair <key, value>
+	// the value part of map output pair <key, value>
 
 	FloatWritable delay;
 	IntWritable count;

@@ -12,6 +12,7 @@ import org.neu.job.FlightDelayJob;
 import org.neu.util.BenchmarkUtil;
 
 /**
+ * FlightPerformance: MapReduce driver, and run benchmark
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightPerformance {
@@ -41,6 +42,7 @@ public class FlightPerformance {
     BenchmarkUtil.writeBenchmarks(bmdList, benchmarkLoc);
   }
 
+  //Driver method to run FlightDelayJob
   private static void runJobs(String[] args, Configuration conf, BenchmarkData bmd)
       throws Exception {
     int result;
@@ -63,6 +65,9 @@ public class FlightPerformance {
     bmd.setFlightDelayJob((double) ((d2 - d1) / 1000000));
   }
 
+  /**
+  * To clear the existed output file
+  */
   private static void cleanOutDir(String loc, Configuration conf) throws IOException {
     Path outDirPath = new Path(loc);
     FileSystem fs = FileSystem.get(outDirPath.toUri(), conf);

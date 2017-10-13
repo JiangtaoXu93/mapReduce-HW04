@@ -18,6 +18,7 @@ import org.neu.mapper.FlightDelayMapper;
 import org.neu.reducer.FlightDelayReducer;
 
 /**
+ * FlightDelayJob: fetch the flight information, and output the most busy airport/airline with delay time.
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayJob extends Configured implements Tool {

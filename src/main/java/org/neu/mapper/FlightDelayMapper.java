@@ -13,6 +13,8 @@ import org.neu.data.FlightDataWritable;
 import org.neu.data.FlightDelayCompositeKey;
 
 /**
+ * FlightDelayMapper: Mapper class, read data from HDFS, 
+ *  generate 2 type of key-value pair, one for ariline, one for airport
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayMapper extends
@@ -50,6 +52,11 @@ public class FlightDelayMapper extends
     }
   }
 
+ 
+
+  /**
+   * return the sanity delay time
+   */
   private Float getDelayMinutes(String[] flightRecord) {
     Float delay;
     if (Integer.parseInt(flightRecord[csvColumnMap.get("cancelled")]) == 1) {

@@ -9,11 +9,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
 /**
+ * FlightDelayCompositeKey: CompositeKey, includes year, month, aaCode, aaName, recodeType of the map output
  * @author Bhanu, Joyal, Jiangtao
  */
 
 public class FlightDelayCompositeKey implements WritableComparable<FlightDelayCompositeKey> {
-  // key of the first map output
+  // key of the map output
 
   private IntWritable year;
   private IntWritable month;

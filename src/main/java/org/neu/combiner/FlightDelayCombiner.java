@@ -6,6 +6,7 @@ import org.neu.data.FlightDelayCompositeKey;
 import org.neu.data.FlightDataWritable;
 
 /**
+ * FlightDelayCombiner: combine the number of flight and total delay time for same key
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayCombiner extends

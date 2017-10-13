@@ -6,6 +6,7 @@ import org.neu.data.FlightDelayCompositeKey;
 
 
 /**
+ * FlightSortComparator: a comparator that check the key of year, month, record type, AaCode(airline/airport code)
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightSortComparator extends WritableComparator {

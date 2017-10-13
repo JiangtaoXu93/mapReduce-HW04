@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 /**
+ * DataSanity: Check the data validation, includes: empty, positive, required time format
  * @author Bhanu, Joyal, Jiangtao
  */
 public class DataSanity {

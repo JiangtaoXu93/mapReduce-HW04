@@ -1,6 +1,7 @@
 package org.neu.data;
 
 /**
+ * FlightCodeCountKeyPair:Composite key pair, includes airport/airline code, count
  * @author Bhanu, Joyal, Jiangtao
  */
 
