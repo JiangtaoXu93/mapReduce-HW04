@@ -1,7 +1,7 @@
 ---
-title: 'A3 - Neighborhood Score: Reloaded'
-author: "Bhanu Jain (jain.b@husky.neu.edu)"
-date: "October 05, 2017"
+title: "A4 - On-Time Performance Data"
+author: "Jiangtao, Joyal and Bhanu"
+date: "October 12, 2017"
 output:
   html_document:
     fig_caption: yes
@@ -15,134 +15,168 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 require("ggplot2")
 require("gridExtra")
+library("magrittr")
+library(knitr)
+library(kableExtra)
+
 knitr::opts_knit$set(root.dir = normalizePath(getwd()))
 ```
 
 \newpage
 
 # Problem
-http://janvitek.org/pdpmr/f17/tasks-a3-neighborhood-score-reloaded.html
+http://janvitek.org/pdpmr/f17/task-a4-delay.html
 
 # Solution
 
-There are 2 MR jobs,
+There is one MR job:
 
-* Job1: `LetterCount Job`
-* Job2: `KNeighbourhoodScore Job`
+* Job1: `FlightCountJob`
 
-Details are explained in the section [architechture](#architechture).
-
-## Changes from A2
-
-* **InputFormat for Job1**
+Details are explained in the section [architecture](#architecture).
 
 
-    Instead of using default `TextInputFormat` which splits per line, wrote `WholeFileInputFormatBytes` (as mentioned in book HTDG CH8). `WholeFileInputFormatBytes` splits per file. Thus the mapper gets complete file as a record of type `RecordReader<NullWritable, BytesWritable>`. This record is driven by `WholeFileRecordReaderBytes`.
-
-* **InputFormat for Job2**
-
-
-    Similar to Job1, Job2 get the full file as input. The only change in the record type which is `RecordReader<NullWritable, Text>`. This saves a lot of memory as Job2 deals with words and we don't have to create strings from raw bytes.
-
-* **Collecting Counts in Job1 Mapper**
-
-
-    Using a temp. `map` in `LetterCountMapper` to combine letter counts. This reduces the output for each mapper. Thus less IO and less work for reducer. This is an imp. performance improvement as `LetterCountJob` has a single `reducer`.
-
-* **Combiner in Job1**
-
-
-    Using  combiner in Job1 to reduce the data/work for reducer.
-
-* **Single Reducer in Job1**
-
-
-    As the output of `LetterCountJob` is fed to Job2 through `distributed cache`, if there are multiple reducers then there will be multiple output files. Thus in order to get the letter counts, we have to read multiple Job1 output files.To avoid this `File IO` overhead,  the number of reducers for Job1 is set to `1`.
-
-    Additionally as we are collecting and combining in Job1, the reducer work is reduced to minimum.
-
-* **Using Secondary Sort in Job2 Mapper Output**
-
-
-    As we have to compute a median on the final score, the output for `KNeighborhoodScoreMapper` should be sorted on composite key `<word,score>`. This sort is necessary to calculate median. If we do not have Secondary sort then we have to manually sort score for each word in `KNeighborhoodScoreReducer` which would add `nlogn` time complexity. This is achieved by custom `compositeKey`, `partioner`,`sortComparator` and `groupComparator`. Following are the custom classes mentioned,
-
-    * `TextLongPair`
-    * `WordPartitioner`
-    * `GroupComparator`
-    * `KeyComparator`
-
-    The approach is exactly the same as mentioned in book HTDG(CH9 - Secondary Sort).
-
-    * Create a custom composite key, `<Text,LongWritable`> i.e. `<word, count>`
-    * Partition by `Text`
-    * Group by `Text`
-    * Sort by Composite Key. Order is `Text`,`LongWritable`
-
-
-
-## Architechture {#architechture}
+## Architecture {#architecture}
 
 Below is the solution architecture.
 
-![](img/pdpmr-f17-bhanu-jain-a2-arc.png)
 
 *Arrows head represent the data flow.*
 
 
-1. **JOB1: LetterCount Job**
+1. **JOB: FlightCountJob**
 
 
-    1a. `LetterCountMapper` takes each line as value and generates counts for each letter in that line.
-
-    ```
-    #Input k,v
-    NullWritable, BytesWritable
-    #Output k,v
-    Text, IntWritable
-    ```
-
-    1b. `LetterCountCombiner` combines the keys and feds to reducer. Same implementation as reducer. As `LetterCountReducer` is set to single instance, the combiner helps to reduce the input going into the reduces, this improving performance
+    1.1.1. `FlightCountMapper`
+            
+    This job reads each line from flight record file in csv format, cleans data as per rules and generates two Composite `<K,V>` pair for airline
+    and airport. The `key` is type of `FlightCountCompositeKey` class which implements `WritableComparable` interface while the `value` is type
+    of `FlightDataWritable` class which implements `Writable` interface.
+    
 
     ```
     #Input k,v
-    Text, IntWritable
+    LongWritable, Text
     #Output k,v
-    Text, IntWritable
+    FlightCountCompositeKey, FlightDataWritable
     ```
+    
+    1.1.1.1 `FlightCountCompositeKey` 
+    
+    The structure of `FlightCountCompositeKey` is as shown below:
+          
+    ```java
+    public class FlightCountCompositeKey implements WritableComparable<FlightCountCompositeKey> {
+      private IntWritable year;
+      private IntWritable month;
+      private IntWritable aaCode;
+      private Text aaName;
+      private IntWritable recordType; //1-Airport , 2-Airline
+    }
+    ```
+    This class was instantiated to avoid reading file twice.
+    Each input line of data contains information for both airline and airport. 
+    Hence, a mapper creates two instance of `FlightCompositeKey` and its corresponding value class `FlightDataWritable`.
+    The following table shows difference in fields for each composite key instance.
+    
+    ```{r, echo = FALSE}
+    compositeDF <- read.csv("CompositeKeyCompare.csv")
+    kable(compositeDF, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    ```
+    
+    This class also overrides `compareTo` method in the following way
+    
+    ```java
+      @Override
+      public int compareTo(FlightCountCompositeKey key) {
+        int code = this.year.compareTo(key.getYear());
+        if (code == 0) {
+          code = this.month.compareTo(key.getMonth());
+          if (code == 0) {
+            code = this.recordType.compareTo(key.getRecordType());
+            if (code == 0) {
+              code = this.getAaCode().compareTo(key.getAaCode());
+            }
+          }
+        }
+        return code;
+      }
+    ```
+    The output of the map function is a grouped record where grouping is done on the basis of year,month and type of record. The above `compareTo` method
+    helps achieve the grouping by first checking whether year for each is same or not. If the year value is same, then month value will be compared.
+    If month is same then recordType will be compared. And if both objects are of same record then their name will be compared.
+    
+    If value of each field is same, then the delay and count will be summed up in the value of type `FlightDataWritable` class. 
+    
+    This process is shown below:
+    
+    ```{r, echo = FALSE}
+    ckExample1 <- read.csv("ckExample_1.csv")
+    kable(ckExample1, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    ```
+    
+    As shown in the above table, there are four records, 2 each of type airport and airline. Now as there `compareTo` function call would return `0`
+    as output, the data from the above will be grouped by the `FlightCountCompositeKey` and will be summed as shown below:
+    
+    ```{r, echo = FALSE}
+    ckExample2 <- read.csv("ckExample_2.csv")
+    kable(ckExample2, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    ```
+    
+    1.1.1.2 `FlightDataWritable`
+    
+    The structure of `FlightCountCompositeKey` is as shown below:
+    
+    ```java
+    public class FlightDataWritable implements Writable {
+    // the value part of 1st map output pair <key, value>
 
-    1c. `LetterCountReducer` combines and sorts the keys to produce final counts.
+	  FloatWritable delay;
+	  IntWritable count;
+    }
+    ```
+    The mapper class emits instance of this class as value to combiner. Each Value object contains two fields: `delay` and `count`.
+    `delay` captures the normalised delay for airport instance and airline instance.
+    Each emit of `count` will be initialised. The value of `count` be eventually summed up to total number of occurance of that key in
+    the combiner. This field value will be eventually used to calculate `mean delay` across the corpus in reducer.
+    
+    1.1.2. `FlightCountCombiner` 
+    
+    combines the keys and feds to reducer. Same implementation as reducer. As `FlightCountReducer` is set to single instance, the combiner helps to reduce       the input going into the reduces, thus improving performance.
 
     ```
     #Input k,v
-    Text, IntWritable
+    FlightCountCompositeKey, FlightDataWritable
     #Output k,v
-    Text, IntWritable
+    FlightCountCompositeKey, FlightDataWritable
     ```
-
-2. **JOB2: KNeighbourhoodScore Job**
-After successful completion of Job1, `KNeighbourhoodScoreJob` is triggered with input as the corpus.
-
-
-    2a. `KNeighborhoodScoreMapper` reads each line of the corpus as value with key as offset. During the `setup` it calls `LetterScore` operation go generate scores with `letter counts`. Once we have the `letter scores`, it calculates the neighbors for all the words in the line and finally the neighborhood score for that word. `K` is taken from the job configuration.
+    
+    The `reduce` method of combiner receives `FlightCountCompositeKey` key and `Iterable<FlightDataWritable>` values, and as explained above, sums up
+    totalDelay for each airline and airport for each year each month.
+    
+    At the end of the combiner phase, we will have combined delay and 
+    count for each airline and airport for each year each month.
+    
+    1.1.3. `FlightCountReducer` 
+    
+    The Reducer phase receives input and emits output in the following `<k,v>` format
 
     ```
     #Input k,v
-    NullWritable, Text
+    FlightCountCompositeKey, FlightDataWritable
     #Output k,v
-    TextLongPair, LongWritable
+    FlightCountCompositeKey, FlightDataWritable
     ```
-
-    2b. `Letter Score`: In the `setup` method of each mapper we calculate the `letter score` based on `letter count` from Job1. The output of Job1 is read from `Distributed File Cache` added during Job2 configuration.
-
-    2c. `KNeighborhoodScoreReducer` sorts, combines and averages the neighborhood score for each word.
-
-    ```
-    #Input k,v
-    TextLongPair, LongWritable
-    #Output k,v
-    Text, DoubleWritable
-    ```
-
+    It has 3 sub phases:
+    
+      - `Setup`: It initializes `topKCount` from job configuration, which is the value for the final top k flights for which we want to run the MR job.
+      - `Reduce`: The reduce phase works on in total following variables:
+      
+        ```{r, echo = FALSE}
+        varDesc <- read.csv("varDesc.csv")
+        kable(varDesc, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+        ```
+      - `Clear`
 
 # Results
 
@@ -153,22 +187,22 @@ The goal of this experiment was to compare the execution time on single thread, 
 ```{r echo=FALSE, fig.width=10,fig.height=11}
 library(ggplot2)
 library(gridExtra)
-df.single<- read.csv("bm-a1/performanceSingle.csv")
-df.multi<- read.csv("bm-a1/performanceMulti.csv")
-df.mr<- read.csv("bm-a2/benchmark-aws-i1-k2-books-a1.csv", header = FALSE)
-colnames(df.mr) <- c("run","threads","time")
-df.combined <- rbind(df.single, df.multi)
-df.combined$run  <- gsub("Run ", "", df.combined$run)
-df.combined$threads <- gsub("Thread ", "", df.combined$threads)
-df.combined$time <- gsub("Time ", "", df.combined$time)
-df.combined <- rbind(df.combined, df.mr)
-df.combined$run <- as.numeric(df.combined$run)
-df.combined$threads <- as.numeric(df.combined$threads)
-df.combined$time <- as.numeric(df.combined$time)
-df.combined[df.combined == 0] <- 12
-df.combined$time <- df.combined$time/(1000)
+#df.single<- read.csv("bm-a1/performanceSingle.csv")
+#df.multi<- read.csv("bm-a1/performanceMulti.csv")
+#df.mr<- read.csv("bm-a2/benchmark-aws-i1-k2-books-a1.csv", header = FALSE)
+#colnames(df.mr) <- c("run","threads","time")
+#df.combined <- rbind(df.single, df.multi)
+#df.combined$run  <- gsub("Run ", "", df.combined$run)
+#df.combined$threads <- gsub("Thread ", "", df.combined$threads)
+#df.combined$time <- gsub("Time ", "", df.combined$time)
+#df.combined <- rbind(df.combined, df.mr)
+#df.combined$run <- as.numeric(df.combined$run)
+#df.combined$threads <- as.numeric(df.combined$threads)
+#df.combined$time <- as.numeric(df.combined$time)
+#df.combined[df.combined == 0] <- 12
+#df.combined$time <- df.combined$time/(1000)
 
-ggplot(df.combined, aes(x=threads, y=time, color=factor(threads))) + geom_point(size=2) + scale_y_log10(breaks=c(1,2,3,4,5,6,7,8,9,10,30,100,700,750,800,900)) + scale_x_discrete(limits=c(1,2,4,6,8,10,12)) + labs(x = "no. of threads", y="time(s)",title="Plot 1. CPU Time vs Threads",color = "Threads\n(12 represents Map Reduce Job in pseudo mode)\n")
+#ggplot(df.combined, aes(x=threads, y=time, color=factor(threads))) + geom_point(size=2) + scale_y_log10(breaks=c(1,2,3,4,5,6,7,8,9,10,30,100,700,750,800,900)) + scale_x_discrete(limits=c(1,2,4,6,8,10,12)) + labs(x = "no. of threads", y="time(s)",title="Plot 1. CPU Time vs Threads",color = "Threads\n(12 represents Map Reduce Job in pseudo mode)\n")
 
 ```
 
@@ -188,15 +222,15 @@ There is a clear trend where multihreading outperforms the hadoop implementation
 
 
 ```{r echo=FALSE, fig.width=10, fig.height=8}
-df.a3.c2 <- read.csv("bm-a3/benchmark-nbr-k=2-i=5-input=books-c=2.csv")
-df.a3.c2$ThreadCount <- 2
-df.a3.c4 <- read.csv("bm-a3/benchmark-nbr-k=2-i=1-input=books-c=4.csv")
-df.a3.c4$ThreadCount <- 4
-df.a3 <- rbind(df.a3.c2 , df.a3.c4)
-df.a3$TotalExecutionTime <- as.numeric(df.a3$TotalExecutionTime)
-df.a3$TotalExecutionTime <- df.a3$TotalExecutionTime/(1000)
-
-ggplot(df.a3, aes(x=ThreadCount, y=TotalExecutionTime, color=factor(ThreadCount))) + geom_point(size=2.5) + labs(x = "No of Nodes in Cluster", y="time(s)",title="Plot 2. CPU Time vs Cluster Nodes",color = "No of Nodes in Cluster") +scale_x_discrete(limits=c(2,4))
+# df.a3.c2 <- read.csv("bm-a3/benchmark-nbr-k=2-i=5-input=books-c=2.csv")
+# df.a3.c2$ThreadCount <- 2
+# df.a3.c4 <- read.csv("bm-a3/benchmark-nbr-k=2-i=1-input=books-c=4.csv")
+# df.a3.c4$ThreadCount <- 4
+# df.a3 <- rbind(df.a3.c2 , df.a3.c4)
+# df.a3$TotalExecutionTime <- as.numeric(df.a3$TotalExecutionTime)
+# df.a3$TotalExecutionTime <- df.a3$TotalExecutionTime/(1000)
+# 
+# ggplot(df.a3, aes(x=ThreadCount, y=TotalExecutionTime, color=factor(ThreadCount))) + geom_point(size=2.5) + labs(x = "No of Nodes in Cluster", y="time(s)",title="Plot 2. CPU Time vs Cluster Nodes",color = "No of Nodes in Cluster") +scale_x_discrete(limits=c(2,4))
 
 ```
 
@@ -215,9 +249,9 @@ With `Plot 2.` we can clearly see that 4 node cluster outperforms 2 node cluster
 
 
 ```{r echo=FALSE }
-df.bar <- data.frame(cluster=c(2,4),meanExecutionTime=c( mean(df.a3.c2[,c("TotalExecutionTime")]),df.a3.c4[,c("TotalExecutionTime")]))
-df.bar$meanExecutionTime <- df.bar$meanExecutionTime/1000
-ggplot(df.bar, aes(x=cluster, y=factor(meanExecutionTime))) + geom_bar(stat = "identity")+scale_x_discrete(limits=c(2,4))  + labs(x = "No of Nodes in Cluster", y="Mean Execution Time (s)",title="Plot 3. Mean Execution Time vs # of Cluster Nodes")
+# df.bar <- data.frame(cluster=c(2,4),meanExecutionTime=c( mean(df.a3.c2[,c("TotalExecutionTime")]),df.a3.c4[,c("TotalExecutionTime")]))
+# df.bar$meanExecutionTime <- df.bar$meanExecutionTime/1000
+# ggplot(df.bar, aes(x=cluster, y=factor(meanExecutionTime))) + geom_bar(stat = "identity")+scale_x_discrete(limits=c(2,4))  + labs(x = "No of Nodes in Cluster", y="Mean Execution Time (s)",title="Plot 3. Mean Execution Time vs # of Cluster Nodes")
 ```
 
 
@@ -225,14 +259,14 @@ ggplot(df.bar, aes(x=cluster, y=factor(meanExecutionTime))) + geom_bar(stat = "i
 
 
 ```{r echo=FALSE }
-library(reshape)
-df.job <- df.a3.c2[,c("Iteration","LetterCountExecutionTime","KNExecutionTime")]
-colnames(df.job) <- c("Iteration","LetterCountJob","KNeighbourhoodScoreJob")
-df.job <- melt(df.job, id=c("Iteration"))
-colnames(df.job) <- c("Iteration","Job","ExecutionTime")
-df.job$ExecutionTime <- df.job$ExecutionTime/1000
-ggplot(df.job, aes(x=Iteration, y=ExecutionTime, fill=Job)) +
-    geom_bar(stat="identity", position=position_dodge()) + labs(x = "Iterations", y="Execution Time (s)",title="Plot 4. Execution Time vs Hadoop Job")
+# library(reshape)
+# df.job <- df.a3.c2[,c("Iteration","LetterCountExecutionTime","KNExecutionTime")]
+# colnames(df.job) <- c("Iteration","LetterCountJob","KNeighbourhoodScoreJob")
+# df.job <- melt(df.job, id=c("Iteration"))
+# colnames(df.job) <- c("Iteration","Job","ExecutionTime")
+# df.job$ExecutionTime <- df.job$ExecutionTime/1000
+# ggplot(df.job, aes(x=Iteration, y=ExecutionTime, fill=Job)) +
+#     geom_bar(stat="identity", position=position_dodge()) + labs(x = "Iterations", y="Execution Time (s)",title="Plot 4. Execution Time vs Hadoop Job")
 
 
 ```
