@@ -12,6 +12,9 @@ import org.neu.job.FlightCountJob;
 import org.neu.job.FlightDelayTopKJob;
 import org.neu.util.BenchmarkUtil;
 
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightPerformance {
 
   public static final String TOP_K_COUNT_CONF_KEY = "local.config.top.k.count";
