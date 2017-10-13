@@ -15,25 +15,27 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.neu.data.FlightCodeCountKeyPair;
-import org.neu.data.FlightCountCompositeKey;
 import org.neu.data.FlightDataWritable;
+import org.neu.data.FlightDelayCompositeKey;
 
 /**
  * @author Bhanu, Joyal, Jiangtao
  */
-public class FlightCountReducer extends
-    Reducer<FlightCountCompositeKey, FlightDataWritable, FlightCountCompositeKey, FlightDataWritable> {
+public class FlightDelayReducer extends
+    Reducer<FlightDelayCompositeKey, FlightDataWritable, FlightDelayCompositeKey, FlightDataWritable> {
 
-  private static int topKCount;// number of top airline/airport
+  private static int topKCount; // number of top airline/airport.
   private MultipleOutputs mos;
-  /*k->aaCode, v->Count*/
-  private Map<Integer, Integer> airlineMap = new HashMap<>();
-  /*k->aaCode, v->Count*/
-  private Map<Integer, Integer> airportMap = new HashMap<>();
-  private SortedSet<FlightCodeCountKeyPair> airportSortedSet = new TreeSet<>();
-  private SortedSet<FlightCodeCountKeyPair> airlineSortedSet = new TreeSet<>();
-  private Map<FlightCountCompositeKey, FloatWritable> reducedValueMap = new HashMap<>();
-  // K -> recordType ; V-> List of Most Busy Airport/Airline
+  /*airportFlightCount: holds local flight counts for airport: k->aaCode, v->Count*/
+  private Map<Integer, Integer> airportFlightCount = new HashMap<>();
+  /*airlineFlightCount: holds local flight counts for airline: k->aaCode, v->Count*/
+  private Map<Integer, Integer> airlineFlightCount = new HashMap<>();
+  private SortedSet<FlightCodeCountKeyPair> airportFlightCountSorted = new TreeSet<>();
+  private SortedSet<FlightCodeCountKeyPair> airlineFlightCountSorted = new TreeSet<>();
+  /*reducedValueMap: Local Map to hold reduced records for each <YEAR,MONTH,RECORD_TYPE,CODE>*/
+  private Map<FlightDelayCompositeKey, FloatWritable> reducedValueMap = new HashMap<>();
+  /*mostBusyMap: Local Map to hold List of Most Busy Airport/Airline.
+  k -> recordType, V->List of Most Busy Airport/Airline*/
   private Map<Integer, List<Integer>> mostBusyMap = new HashMap<>();
 
   @Override
@@ -43,52 +45,66 @@ public class FlightCountReducer extends
   }
 
   @Override
-  public void reduce(FlightCountCompositeKey key, Iterable<FlightDataWritable> values,
+  public void reduce(FlightDelayCompositeKey key, Iterable<FlightDataWritable> values,
       Context context)
       throws IOException, InterruptedException {
     int count = 0;
     float totalDelay = 0;
-    FlightCountCompositeKey newKey = new FlightCountCompositeKey(key.getYear().get(),
+    FlightDelayCompositeKey newKey = new FlightDelayCompositeKey(key.getYear().get(),
         key.getMonth().get(), key.getAaCode().get(), key.getAaName().toString(),
         key.getRecordType().get());
+    //Actual reduce operation
     for (FlightDataWritable value : values) {
       totalDelay += value.getDelay().get();
       count += value.getCount().get();
     }
+    // Storing reduced record to local map
     reducedValueMap.put(newKey, new FloatWritable(totalDelay / count));
-    increaseRecordCount(key, count);
+    // Storing flight counts
+    increaseFlightCount(key, count);
   }
 
-  private void increaseRecordCount(FlightCountCompositeKey key, int count) {
+  /**
+   * increaseFlightCount stores global flight counts for airlines/airports
+   */
+  private void increaseFlightCount(FlightDelayCompositeKey key, int count) {
     if (key.getRecordType().get() == 1) {
-      int flightCount = airportMap.computeIfAbsent(key.getAaCode().get(), k -> 0);
-      flightCount += count;
-      airportMap.put(key.getAaCode().get(), flightCount);
+      airportFlightCount.put(key.getAaCode().get(),
+          airportFlightCount.getOrDefault(key.getAaCode().get(), 0) + count);
     } else {
-      int flightCount = airlineMap.computeIfAbsent(key.getAaCode().get(), k -> 0);
-      flightCount += count;
-      airlineMap.put(key.getAaCode().get(), flightCount);
+      airlineFlightCount.put(key.getAaCode().get(),
+          airlineFlightCount.getOrDefault(key.getAaCode().get(), 0) + count);
     }
   }
 
   @Override
   protected void cleanup(Context context) throws IOException, InterruptedException {
+    // sort airportFlightCount,airlineFlightCount
     sortCountMaps();
+    // write top 5 most busy airport/airline to file
     writeMostBusy();
+    // write filtered records (filtered on most busy) to file
     writeFilteredRecords();
     mos.close();
   }
 
+  /**
+   * writeFilteredRecords filter local stored reduced records by mostBusy Airline/Airport
+   * The output is written to file
+   */
   private void writeFilteredRecords() throws IOException, InterruptedException {
-    for (Map.Entry<FlightCountCompositeKey, FloatWritable> entry : reducedValueMap.entrySet()) {
+    for (Map.Entry<FlightDelayCompositeKey, FloatWritable> entry : reducedValueMap.entrySet()) {
       List<Integer> busyList = mostBusyMap.get(entry.getKey().getRecordType().get());
       if (busyList.contains(entry.getKey().getAaCode().get())) {
-        writeDetlayData(entry);
+        writeDelayData(entry);
       }
     }
   }
 
-  private void writeDetlayData(Entry<FlightCountCompositeKey, FloatWritable> entry)
+  /**
+   * Writes Filtered Records to individual Output files.
+   */
+  private void writeDelayData(Entry<FlightDelayCompositeKey, FloatWritable> entry)
       throws IOException, InterruptedException {
     if (1 == entry.getKey().getRecordType().get()) {
       mos.write("flightDelayAirportData", entry.getKey(), entry.getValue());
@@ -98,17 +114,17 @@ public class FlightCountReducer extends
   }
 
   private void sortCountMaps() {
-    for (Map.Entry<Integer, Integer> entry : airportMap.entrySet()) {
-      airportSortedSet.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
+    for (Map.Entry<Integer, Integer> entry : airportFlightCount.entrySet()) {
+      airportFlightCountSorted.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
     }
-    for (Map.Entry<Integer, Integer> entry : airlineMap.entrySet()) {
-      airlineSortedSet.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
+    for (Map.Entry<Integer, Integer> entry : airlineFlightCount.entrySet()) {
+      airlineFlightCountSorted.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
     }
   }
 
   private void writeMostBusy() throws IOException, InterruptedException {
-    writeSortedSet(airportSortedSet, 1, "mostBusyAirportData");
-    writeSortedSet(airlineSortedSet, 2, "mostBusyAirlineData");
+    writeSortedSet(airportFlightCountSorted, 1, "mostBusyAirportData");
+    writeSortedSet(airlineFlightCountSorted, 2, "mostBusyAirlineData");
   }
 
   private void writeSortedSet(SortedSet<FlightCodeCountKeyPair> sortedSet, int recordType,

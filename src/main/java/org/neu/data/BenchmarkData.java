@@ -14,17 +14,15 @@ public class BenchmarkData {
   private Date dateTime;
   private Double totalExecutionTime;
   private Double flightDelayJob;
-  private Double flightDelayTopKJob;
 
   public BenchmarkData(int threadCount, int iteration, String k, Double totalExecutionTime,
-      String input, Date dateTime, Double flightDelayJob, Double flightDelayTopKJob) {
+      String input, Date dateTime, Double flightDelayJob) {
     this.threadCount = threadCount;
     this.iteration = iteration;
     this.k = k;
     this.totalExecutionTime = totalExecutionTime;
     this.input = input;
     this.flightDelayJob = flightDelayJob;
-    this.flightDelayTopKJob = flightDelayTopKJob;
     this.dateTime = dateTime;
   }
 
@@ -87,11 +85,4 @@ public class BenchmarkData {
     this.flightDelayJob = flightDelayJob;
   }
 
-  public Double getFlightDelayTopKJob() {
-    return flightDelayTopKJob;
-  }
-
-  public void setFlightDelayTopKJob(Double flightDelayTopKJob) {
-    this.flightDelayTopKJob = flightDelayTopKJob;
-  }
 }

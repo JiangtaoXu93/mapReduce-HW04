@@ -3,13 +3,14 @@ package org.neu.util;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
+
 /**
  * @author Bhanu, Joyal, Jiangtao
  */
 public class DataSanity {
 
-  public static Map<String, Integer> csvColumnMap = new HashMap<>();
   private static final int FLIGHT_DELAY_FACTOR = 4;
+  public static Map<String, Integer> csvColumnMap = new HashMap<>();
 
   /*Initializes map containing CSV Column Mapping*/
   public static void initCsvColumnMap() {
@@ -80,7 +81,6 @@ public class DataSanity {
       crsElapsedTime = Integer.parseInt(record[csvColumnMap.get("crsElapsedTime")]);
       arrDelay = (int) Float.parseFloat(record[csvColumnMap.get("arrDelay")]);
       arrDelayMinutes = (int) Float.parseFloat(record[csvColumnMap.get("arrDelayMinutes")]);
-
 
       // CRSArrTime and CRSDepTime and CRSElapsedTime should not be zero
       if (crsArrTime == 0 || crsDepTime == 0 || crsElapsedTime == 0) {

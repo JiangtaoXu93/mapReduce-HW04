@@ -11,6 +11,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.neu.data.BenchmarkData;
+
 /**
  * @author Bhanu, Joyal, Jiangtao
  */
@@ -42,7 +43,6 @@ public class BenchmarkUtil {
       add("Iteration");
       add("TotalExecutionTime");
       add("FlightDelayJobExecutionTime");
-      add("FlightDelayTopKJobExecutionTime");
     }});
     for (BenchmarkData bmd : benchmarkData) {
       writeRow(row, bmd);
@@ -78,7 +78,6 @@ public class BenchmarkUtil {
     row.append(",");
     row.append(bmd.getFlightDelayJob());
     row.append(",");
-    row.append(bmd.getFlightDelayTopKJob());
     row.append("\n");
   }
 
