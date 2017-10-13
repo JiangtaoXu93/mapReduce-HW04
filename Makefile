@@ -36,6 +36,7 @@ all-uz: build setup-hdfs run
 build: compile jar
 
 compile:
+	mkdir -p out
 	javac -cp ${MY_CLASSPATH} -d out \
 	${PROJECT_BASE}/*.java \
 	${PROJECT_BASE}/util/*.java \
