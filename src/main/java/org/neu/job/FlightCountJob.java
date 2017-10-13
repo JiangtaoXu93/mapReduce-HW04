@@ -15,7 +15,9 @@ import org.neu.data.FlightCountCompositeKey;
 import org.neu.data.FlightDataWritable;
 import org.neu.mapper.FlightCountMapper;
 import org.neu.reducer.FlightCountReducer;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightCountJob extends Configured implements Tool {
 
   @Override

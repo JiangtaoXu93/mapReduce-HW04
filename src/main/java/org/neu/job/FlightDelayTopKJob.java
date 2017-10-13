@@ -13,7 +13,9 @@ import org.neu.comparator.FlightSortComparator;
 import org.neu.data.FlightDelayCompositeKey;
 import org.neu.mapper.FlightDelayTopKMapper;
 import org.neu.reducer.FlightDelayTopKReducer;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightDelayTopKJob extends Configured implements Tool {
 
   private static String OUTPUT_SEPARATOR = "mapreduce.output.textoutputformat.separator";

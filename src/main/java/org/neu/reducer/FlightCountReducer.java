@@ -15,21 +15,17 @@ import org.neu.data.FlightCountCompositeKey;
 import org.neu.data.FlightDataWritable;
 
 /**
- * FlightCountReducer: combine the number of flight by the same FlightCountCompositeKey
- *
- * @author jiangtao
+ * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightCountReducer extends
     Reducer<FlightCountCompositeKey, FlightDataWritable, FlightCountCompositeKey, FlightDataWritable> {
 
-  private static int topKCount;
+  private static int topKCount;// number of top airline/airport
   private MultipleOutputs mos;
-  /*k->aaCode, v->Count*/
-  private Map<Integer, Integer> airlineMap = new HashMap<>();
-  /*k->aaCode, v->Count*/
-  private Map<Integer, Integer> airportMap = new HashMap<>();
-  private SortedSet<FlightCodeCountKeyPair> airportSortedSet = new TreeSet<>();
-  private SortedSet<FlightCodeCountKeyPair> airlineSortedSet = new TreeSet<>();
+  private Map<Integer, Integer> airlineMap = new HashMap<>();//key: airline code, value: count of flight
+  private Map<Integer, Integer> airportMap = new HashMap<>();//key: airport code, value: count of flight
+  private SortedSet<FlightCodeCountKeyPair> airportSortedSet = new TreeSet<>();//to sort the map
+  private SortedSet<FlightCodeCountKeyPair> airlineSortedSet = new TreeSet<>();//to sort the map
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException {
@@ -47,7 +43,7 @@ public class FlightCountReducer extends
       totalDelay += value.getDelay().get();
       count += value.getCount().get();
     }
-    increaseRecordCount(key, count);
+    increaseRecordCount(key, count);//get the total count of flight, and store into maop
     mos.write("flightCountData", key, new FlightDataWritable(totalDelay, count));
   }
 
@@ -65,8 +61,8 @@ public class FlightCountReducer extends
 
   @Override
   protected void cleanup(Context context) throws IOException, InterruptedException {
-    sortCountMaps();
-    writeMostBusy();
+    sortCountMaps();//sort the map
+    writeMostBusy();// wirite most busy airline and airport 
     mos.close();
   }
 

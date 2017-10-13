@@ -3,7 +3,9 @@ package org.neu.util;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class DataSanity {
 
   public static Map<String, Integer> csvColumnMap = new HashMap<>();

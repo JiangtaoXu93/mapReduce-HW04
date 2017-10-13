@@ -11,7 +11,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.neu.data.FlightCountCompositeKey;
 import org.neu.data.FlightDataWritable;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightCountMapper extends
     Mapper<LongWritable, Text, FlightCountCompositeKey, FlightDataWritable> {
 

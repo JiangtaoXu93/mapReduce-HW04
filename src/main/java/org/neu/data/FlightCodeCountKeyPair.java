@@ -1,38 +1,43 @@
 package org.neu.data;
 
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
+
 public class FlightCodeCountKeyPair implements Comparable<FlightCodeCountKeyPair> {
 
-  private int aaCode;
-  private int count;
+	private int aaCode;//airport/airline code 
+	private int count;
 
-  public FlightCodeCountKeyPair(int aaCode, int count) {
-    super();
-    this.aaCode = aaCode;
-    this.count = count;
-  }
 
-  public int getAaCode() {
-    return aaCode;
-  }
+	public FlightCodeCountKeyPair(int aaCode, int count) {
+		super();
+		this.aaCode = aaCode;
+		this.count = count;
+	}
 
-  public void setAaCode(int aaCode) {
-    this.aaCode = aaCode;
-  }
+	public int getAaCode() {
+		return aaCode;
+	}
 
-  public int getCount() {
-    return count;
-  }
+	public void setAaCode(int aaCode) {
+		this.aaCode = aaCode;
+	}
 
-  public void setCount(int count) {
-    this.count = count;
-  }
+	public int getCount() {
+		return count;
+	}
 
-  @Override
-  public int compareTo(FlightCodeCountKeyPair o) {
-    int value = -(this.count - o.getCount());
-    if (value == 0) {
-      value = this.aaCode - o.getAaCode();
-    }
-    return value;
-  }
+	public void setCount(int count) {
+		this.count = count;
+	}
+
+	@Override
+	public int compareTo(FlightCodeCountKeyPair o) {
+		int value = -(this.count - o.getCount());
+		if (value == 0) {
+			value = this.aaCode - o.getAaCode();
+		}
+		return value;
+	}
 }

@@ -8,9 +8,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.neu.data.FlightDelayCompositeKey;
 
 /**
- * FlightDelayReducer: combine the number of flight by the same FlightCountCompositeKey
- *
- * @author jiangtao
+ * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayTopKReducer extends
     Reducer<FlightDelayCompositeKey, FloatWritable, FlightDelayCompositeKey, Text> {

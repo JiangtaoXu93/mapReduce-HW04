@@ -11,7 +11,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.neu.data.BenchmarkData;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class BenchmarkUtil {
 
   public static BenchmarkData getBenchmarkData(int iteration, int threadCount, String input,

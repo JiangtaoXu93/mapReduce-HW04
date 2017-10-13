@@ -15,25 +15,29 @@ import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.neu.data.FlightDelayCompositeKey;
-
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightDelayTopKMapper extends
     Mapper<Text, Text, FlightDelayCompositeKey, FloatWritable> {
 
+  //Index of attribute in each line divided by '\t'
   private final static int YEAR = 0;
   private final static int MONTH = 1;
-  private final static int AA_CODE = 2;
-  private final static int AA_NAME = 3;
+  private final static int AA_CODE = 2;//airline/airport code
+  private final static int AA_NAME = 3;//airline/airport name
   private final static int RECORD_TYPE = 4;
   private final static int DELAY = 0;
   private final static int COUNT = 1;
 
 
-  // K -> recordType ; V-> List of Most Busy Airport/Airline
+  
   private Map<String, List<String>> mostBusyMap = new HashMap<>();
-
+   // K: recordType ; V:List of Most Busy Airport/Airline
+  
   @Override
   protected void setup(Context context) throws IOException, InterruptedException {
-    populateMostBusyMap(context);
+    populateMostBusyMap(context);//get the most busy airline and airport from HDFS
   }
 
   private void populateMostBusyMap(Context context) throws IOException {
@@ -50,6 +54,8 @@ public class FlightDelayTopKMapper extends
   }
 
   private void processMostBusyFile(Context context, URI mappingFileUri) throws IOException {
+    // read file from HDFS, and get the most busy airline/airport 
+
     FileSystem fs = FileSystem.get(mappingFileUri, context.getConfiguration());
     FileStatus[] status = fs.listStatus(new Path(mappingFileUri));
     InputStreamReader inputStreamReader = new InputStreamReader(fs.open(

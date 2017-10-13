@@ -7,57 +7,61 @@ import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
 
+/**
+ * @author Bhanu, Joyal, Jiangtao
+ */
 public class FlightDataWritable implements Writable {
+	// the value part of 1st map output pair <key, value>
 
-  FloatWritable delay;
-  IntWritable count;
+	FloatWritable delay;
+	IntWritable count;
 
-  public FlightDataWritable() {
-    this.delay = new FloatWritable();
-    this.count = new IntWritable();
-  }
+	public FlightDataWritable() {
+		this.delay = new FloatWritable();
+		this.count = new IntWritable();
+	}
 
-  public FlightDataWritable(FloatWritable delay, IntWritable count) {
+	public FlightDataWritable(FloatWritable delay, IntWritable count) {
 
-    this.delay = delay;
-    this.count = count;
-  }
+		this.delay = delay;
+		this.count = count;
+	}
 
-  public FlightDataWritable(Float delay, Integer count) {
-    this.delay = new FloatWritable(delay);
-    this.count = new IntWritable(count);
-  }
+	public FlightDataWritable(Float delay, Integer count) {
+		this.delay = new FloatWritable(delay);
+		this.count = new IntWritable(count);
+	}
 
-  public FloatWritable getDelay() {
-    return delay;
-  }
+	public FloatWritable getDelay() {
+		return delay;
+	}
 
-  public void setDelay(FloatWritable delay) {
-    this.delay = delay;
-  }
+	public void setDelay(FloatWritable delay) {
+		this.delay = delay;
+	}
 
-  public IntWritable getCount() {
-    return count;
-  }
+	public IntWritable getCount() {
+		return count;
+	}
 
-  public void setCount(IntWritable count) {
-    this.count = count;
-  }
+	public void setCount(IntWritable count) {
+		this.count = count;
+	}
 
-  @Override
-  public void write(DataOutput dataOutput) throws IOException {
-    delay.write(dataOutput);
-    count.write(dataOutput);
-  }
+	@Override
+	public void write(DataOutput dataOutput) throws IOException {
+		delay.write(dataOutput);
+		count.write(dataOutput);
+	}
 
-  @Override
-  public void readFields(DataInput dataInput) throws IOException {
-    delay.readFields(dataInput);
-    count.readFields(dataInput);
-  }
+	@Override
+	public void readFields(DataInput dataInput) throws IOException {
+		delay.readFields(dataInput);
+		count.readFields(dataInput);
+	}
 
-  @Override
-  public String toString() {
-    return delay.toString() + "," + count.toString();
-  }
+	@Override
+	public String toString() {
+		return delay.toString() + "," + count.toString();
+	}
 }
