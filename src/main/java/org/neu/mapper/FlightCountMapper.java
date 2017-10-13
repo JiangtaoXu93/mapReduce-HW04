@@ -9,13 +9,13 @@ import java.io.IOException;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.neu.data.FlightCountCompositeKey;
 import org.neu.data.FlightDataWritable;
-import org.neu.data.FlightInfoCompositeKey;
 
-public class FlightDelayMapper extends
-    Mapper<LongWritable, Text, FlightInfoCompositeKey, FlightDataWritable> {
+public class FlightCountMapper extends
+    Mapper<LongWritable, Text, FlightCountCompositeKey, FlightDataWritable> {
 
-  private CSVParser csvParser = new CSVParser();
+  private static CSVParser csvParser = new CSVParser();
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException {
@@ -25,17 +25,17 @@ public class FlightDelayMapper extends
   public void map(LongWritable key, Text value, Context context)
       throws IOException, InterruptedException {
 
-    String[] flightRecord = this.csvParser.parseLine(value.toString());
+    String[] flightRecord = csvParser.parseLine(value.toString());
 
     if (flightRecord.length > 0 && isValidRecord(flightRecord)) {
 
       Float delayMinutes = getDelayMinutes(flightRecord);
-      FlightInfoCompositeKey fKeyAirport = new FlightInfoCompositeKey(
+      FlightCountCompositeKey fKeyAirport = new FlightCountCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
           flightRecord[csvColumnMap.get("destAirportId")],
           flightRecord[csvColumnMap.get("destination")], 1);
-      FlightInfoCompositeKey fKeyAirline = new FlightInfoCompositeKey(
+      FlightCountCompositeKey fKeyAirline = new FlightCountCompositeKey(
           flightRecord[csvColumnMap.get("year")],
           flightRecord[csvColumnMap.get("month")],
           flightRecord[csvColumnMap.get("airlineID")],

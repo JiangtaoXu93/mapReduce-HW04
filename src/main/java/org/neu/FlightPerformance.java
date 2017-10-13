@@ -8,7 +8,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.neu.data.BenchmarkData;
-import org.neu.job.FlightDelayJob;
+import org.neu.job.FlightCountJob;
 import org.neu.job.FlightDelayTopKJob;
 import org.neu.util.BenchmarkUtil;
 
@@ -46,14 +46,16 @@ public class FlightPerformance {
     long d2;
     cleanOutDir(args[3], conf);
 
-    //FlightDelayJob
+    //FlightCountJob
     d1 = System.nanoTime();
-    System.out.println(String.format(">>>>>> Running FlightDelayJob [Iteration=%s, K=%s]",bmd.getIteration(),bmd.getK() ));
+    System.out.println(String
+        .format(">>>>>> Running FlightCountJob [Iteration=%s, K=%s]", bmd.getIteration(),
+            bmd.getK()));
     conf.setInt(TOP_K_COUNT_CONF_KEY, Integer.valueOf(args[1]));
-    result = ToolRunner.run(conf, new FlightDelayJob(), args);
+    result = ToolRunner.run(conf, new FlightCountJob(), args);
     if (0 != result) {
-      System.out.println(">>>>>> FlightDelayJob failed.");
-      throw new RuntimeException("FlightDelayJob failed.");
+      System.out.println(">>>>>> FlightCountJob failed.");
+      throw new RuntimeException("FlightCountJob failed.");
     }
     d2 = System.nanoTime();
     bmd.setFlightDelayJob((double) ((d2 - d1) / 1000000));
@@ -61,7 +63,9 @@ public class FlightPerformance {
     //FlightDelayTopKJob
     d1 = System.nanoTime();
     d2 = 0L;
-    System.out.println(String.format(">>>>>> Running FlightDelayTopKJob [Iteration=%s, K=%s]",bmd.getIteration(),bmd.getK() ));
+    System.out.println(String
+        .format(">>>>>> Running FlightDelayTopKJob [Iteration=%s, K=%s]", bmd.getIteration(),
+            bmd.getK()));
     result = ToolRunner.run(conf, new FlightDelayTopKJob(), args);
     if (0 != result) {
       System.out.println(">>>>>> FlightDelayTopKJob failed.");

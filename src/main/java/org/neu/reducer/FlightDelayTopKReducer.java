@@ -5,25 +5,25 @@ import java.text.DecimalFormat;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.neu.data.FlightCountCompositeKey;
+import org.neu.data.FlightDelayCompositeKey;
 
 /**
- * FlightDelayReducer: combine the number of flight by the same FlightInfoCompositeKey
+ * FlightDelayReducer: combine the number of flight by the same FlightCountCompositeKey
  *
  * @author jiangtao
  */
 public class FlightDelayTopKReducer extends
-    Reducer<FlightCountCompositeKey, FloatWritable, FlightCountCompositeKey, Text> {
+    Reducer<FlightDelayCompositeKey, FloatWritable, FlightDelayCompositeKey, Text> {
 
 
   @Override
-  public void reduce(FlightCountCompositeKey fKey, Iterable<FloatWritable> values, Context context)
+  public void reduce(FlightDelayCompositeKey fKey, Iterable<FloatWritable> values, Context context)
       throws IOException, InterruptedException {
     Text finalVal = getValue(fKey, values);
     context.write(fKey, finalVal);
   }
 
-  private Text getValue(FlightCountCompositeKey fKey, Iterable<FloatWritable> values) {
+  private Text getValue(FlightDelayCompositeKey fKey, Iterable<FloatWritable> values) {
     DecimalFormat df = new DecimalFormat("##.########");
     float totalDelay = 0;
     for (FloatWritable value : values) {

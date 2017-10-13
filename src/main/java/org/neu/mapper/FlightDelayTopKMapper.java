@@ -14,10 +14,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.neu.data.FlightCountCompositeKey;
+import org.neu.data.FlightDelayCompositeKey;
 
 public class FlightDelayTopKMapper extends
-    Mapper<Text, Text, FlightCountCompositeKey, FloatWritable> {
+    Mapper<Text, Text, FlightDelayCompositeKey, FloatWritable> {
 
   private final static int YEAR = 0;
   private final static int MONTH = 1;
@@ -28,6 +28,7 @@ public class FlightDelayTopKMapper extends
   private final static int COUNT = 1;
 
 
+  // K -> recordType ; V-> List of Most Busy Airport/Airline
   private Map<String, List<String>> mostBusyMap = new HashMap<>();
 
   @Override
@@ -73,15 +74,14 @@ public class FlightDelayTopKMapper extends
     String[] values = value.toString().split(",");
 
     if (checkMostBusy(keys)) {
-      FlightCountCompositeKey cKey = new FlightCountCompositeKey(
+      FlightDelayCompositeKey cKey = new FlightDelayCompositeKey(
           keys[YEAR],
           keys[MONTH],
           keys[AA_CODE],
           keys[AA_NAME],
           keys[RECORD_TYPE],
           values[COUNT]);
-      FloatWritable cValue = new FloatWritable(
-          Float.parseFloat(values[DELAY]) / Integer.parseInt(values[COUNT]));
+      FloatWritable cValue = new FloatWritable(Float.parseFloat(values[DELAY]));
       context.write(cKey, cValue);
     }
   }
