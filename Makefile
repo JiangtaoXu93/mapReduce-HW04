@@ -6,7 +6,8 @@ MY_CLASSPATH=${HADOOP_HOME}/share/hadoop/common/hadoop-common-${HADOOP_VERSION}.
 PROJECT_BASE=src/main/java/org/neu
 INPUT_FOLDER=input
 OUTPUT_FOLDER=output
-INPUT_TYPE=i10
+# INPUT_TYPE is the folder inside input folder. you can define multiple folders contining diff no. of inputs
+INPUT_TYPE=all
 REPORT_FOLDER=report
 JAR_NAME=FlightPerformance.jar
 JAR_PATH=${JAR_NAME}

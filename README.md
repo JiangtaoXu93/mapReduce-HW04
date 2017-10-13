@@ -4,10 +4,9 @@ http://janvitek.org/pdpmr/f17/task-a4-delay.html
 
 ## Code Structure
 
-- `Driver`  : `org.neu.NeighborhoodScore`
+- `Driver`  : `org.neu.FlightPerformance`
   - Arguments `<iterations> <k> <input> <output> <report-loc>`
-- `Job1` :  `org.neu.job.LetterCountJob`
-- `Job2` :  `org.neu.job.KNeighbourhoodScoreJob`
+- `Job` :  `org.neu.job.FlightDelayJob`
 
 ## Hadoop Cluster Config
 ### AWS EC2 pseudo-distributed
@@ -17,9 +16,6 @@ Used with Experiment 1 mentioned in the report
 - `conf/pseudo-distributed/mapred-site.xml`
 - `conf/pseudo-distributed/yarn-site.xml`
 
-### AWS EMR multi-node
-Used with Experiment 2 mentioned in the report
-- `conf/aws/config.json`
 
 ## Running Instructions
 ### Local

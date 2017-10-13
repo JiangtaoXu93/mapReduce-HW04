@@ -26,9 +26,9 @@ public class FlightDelayReducer extends
 
   private static int topKCount; // number of top airline/airport.
   private MultipleOutputs mos;
-  /*airportFlightCount: holds local flight counts for airport: k->aaCode, v->Count*/
+  /*airportFlightCount: holds global flight counts for airport: k->aaCode, v->Count*/
   private Map<Integer, Integer> airportFlightCount = new HashMap<>();
-  /*airlineFlightCount: holds local flight counts for airline: k->aaCode, v->Count*/
+  /*airlineFlightCount: holds global flight counts for airline: k->aaCode, v->Count*/
   private Map<Integer, Integer> airlineFlightCount = new HashMap<>();
   private SortedSet<FlightCodeCountKeyPair> airportFlightCountSorted = new TreeSet<>();
   private SortedSet<FlightCodeCountKeyPair> airlineFlightCountSorted = new TreeSet<>();
