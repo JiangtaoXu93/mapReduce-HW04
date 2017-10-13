@@ -3,6 +3,7 @@ package org.neu.data;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
@@ -12,7 +13,7 @@ import org.apache.hadoop.io.WritableComparable;
  */
 
 public class FlightCountCompositeKey implements WritableComparable<FlightCountCompositeKey> {
-	// key of the first map output 
+	// key of the first map output
 
 	private IntWritable year;
 	private IntWritable month;
@@ -44,112 +45,124 @@ public class FlightCountCompositeKey implements WritableComparable<FlightCountCo
 				new IntWritable(recordType));
 	}
 
-	public static int compare(FlightCountCompositeKey a, FlightCountCompositeKey b) {
-		return a.compareTo(b);
-	}
+  public FlightCountCompositeKey(Integer year, Integer month, Integer aaCode, String aaName,
+      Integer recordType) {
+    this(new IntWritable(year), new IntWritable(month),
+        new IntWritable(aaCode), new Text(aaName),
+        new IntWritable(recordType));
+  }
+
+  public static int compare(FlightCountCompositeKey a, FlightCountCompositeKey b) {
+    return a.compareTo(b);
+  }
 
 
-	@Override
-	public void write(DataOutput dataOutput) throws IOException {
-		year.write(dataOutput);
-		month.write(dataOutput);
-		aaCode.write(dataOutput);
-		aaName.write(dataOutput);
-		recordType.write(dataOutput);
-	}
+  @Override
+  public void write(DataOutput dataOutput) throws IOException {
+    year.write(dataOutput);
+    month.write(dataOutput);
+    aaCode.write(dataOutput);
+    aaName.write(dataOutput);
+    recordType.write(dataOutput);
+  }
 
-	@Override
-	public void readFields(DataInput dataInput) throws IOException {
-		year.readFields(dataInput);
-		month.readFields(dataInput);
-		aaCode.readFields(dataInput);
-		aaName.readFields(dataInput);
-		recordType.readFields(dataInput);
-	}
+  @Override
+  public void readFields(DataInput dataInput) throws IOException {
+    year.readFields(dataInput);
+    month.readFields(dataInput);
+    aaCode.readFields(dataInput);
+    aaName.readFields(dataInput);
+    recordType.readFields(dataInput);
+  }
 
-	@Override
-	public int compareTo(FlightCountCompositeKey key) {
-		int code = this.year.compareTo(key.getYear());
-		if (code == 0) {
-			code = this.month.compareTo(key.getMonth());
-			if (code == 0) {
-				code = this.recordType.compareTo(key.getRecordType());
-				if (code == 0) {
-					code = this.getAaCode().compareTo(key.getAaCode());
-				}
-			}
-		}
-		return code;
-	}
+  @Override
+  public int compareTo(FlightCountCompositeKey key) {
+    int code = this.year.compareTo(key.getYear());
+    if (code == 0) {
+      code = this.month.compareTo(key.getMonth());
+      if (code == 0) {
+        code = this.recordType.compareTo(key.getRecordType());
+        if (code == 0) {
+          code = this.getAaCode().compareTo(key.getAaCode());
+        }
+      }
+    }
+    return code;
+  }
 
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof FlightCountCompositeKey) {
-			FlightCountCompositeKey that = (FlightCountCompositeKey) obj;
-			return this.year.equals(that.getYear())
-					&& this.month.equals(that.getMonth())
-					&& this.recordType.equals(that.getRecordType())
-					&& this.aaCode.equals(that.getAaCode());
-		}
-		return false;
-	}
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof FlightCountCompositeKey) {
+      if (obj == this) {
+        return true;
+      }
+      FlightCountCompositeKey that = (FlightCountCompositeKey) obj;
+      return this.year.equals(that.getYear())
+          && this.month.equals(that.getMonth())
+          && this.recordType.equals(that.getRecordType())
+          && this.aaCode.equals(that.getAaCode());
+    }
+    return false;
+  }
 
-	@Override
-	public int hashCode() {
-		return year.hashCode()
-				+ month.hashCode()
-				+ recordType.hashCode()
-				+ aaCode.hashCode();
-	}
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 31)
+        .append(year.hashCode())
+        .append(month.hashCode())
+        .append(recordType.hashCode())
+        .append(aaCode.hashCode())
+        .toHashCode();
+  }
 
-	@Override
-	public String toString() {
-		return year.toString()
-				+ "," + month.toString()
-				+ "," + aaCode.toString()
-				+ "," + aaName.toString()
-				+ "," + recordType.toString();
-	}
+  @Override
+  public String toString() {
+    return year.toString()
+        + "," + month.toString()
+        + "," + aaCode.toString()
+        + "," + aaName.toString()
+        + "," + recordType.toString();
+  }
 
-	public Text getAaName() {
-		return aaName;
-	}
+  public Text getAaName() {
+    return aaName;
+  }
 
-	public void setAaName(Text aaName) {
-		this.aaName = aaName;
-	}
+  public void setAaName(Text aaName) {
+    this.aaName = aaName;
+  }
 
-	public IntWritable getRecordType() {
-		return recordType;
-	}
+  public IntWritable getRecordType() {
+    return recordType;
+  }
 
-	public void setRecordType(IntWritable recordType) {
-		this.recordType = recordType;
-	}
+  public void setRecordType(IntWritable recordType) {
+    this.recordType = recordType;
+  }
 
-	public IntWritable getMonth() {
-		return month;
-	}
+  public IntWritable getMonth() {
+    return month;
+  }
 
-	public void setMonth(IntWritable month) {
-		this.month = month;
-	}
+  public void setMonth(IntWritable month) {
+    this.month = month;
+  }
 
-	public IntWritable getYear() {
-		return year;
-	}
+  public IntWritable getYear() {
+    return year;
+  }
 
-	public void setYear(IntWritable year) {
-		this.year = year;
-	}
+  public void setYear(IntWritable year) {
+    this.year = year;
+  }
 
-	public IntWritable getAaCode() {
-		return aaCode;
-	}
+  public IntWritable getAaCode() {
+    return aaCode;
+  }
 
-	public void setAaCode(IntWritable aaCode) {
-		this.aaCode = aaCode;
-	}
+  public void setAaCode(IntWritable aaCode) {
+    this.aaCode = aaCode;
+  }
 
 }
