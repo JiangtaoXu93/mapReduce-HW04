@@ -14,7 +14,7 @@ import org.neu.data.FlightDelayCompositeKey;
 
 /**
  * FlightDelayMapper: Mapper class, read data from HDFS, 
- *  generate 2 type of key-value pair, one for ariline, one for airport
+ *  generate 2 type of key-value pair, one for airline, one for airport
  * @author Bhanu, Joyal, Jiangtao
  */
 public class FlightDelayMapper extends

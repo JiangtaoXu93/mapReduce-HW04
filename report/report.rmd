@@ -80,7 +80,7 @@ Each input line of data contains information for both airline and airport.
 Hence, a mapper creates two instance of `FlightCompositeKey` and its corresponding value class `FlightDataWritable`.
 The following table shows difference in fields for each composite key instance.
     
-```{r, echo = FALSE}
+```{r, echo = FALSE,message=FALSE, warning=FALSE}
 library(knitr)
 library(kableExtra)
 compositeDF <- read.csv("data/CompositeKeyCompare.csv")
@@ -139,14 +139,14 @@ At the end of the combiner phase, we will have combined delay and count for each
 
 This process is shown below:
     
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 ckExample1 <- read.csv("data/ckExample_1.csv")
 kable(ckExample1) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
     
 As shown in the above table, there are four records, 2 each of type airport and airline. The data from the above table will be grouped on `FlightCountCompositeKey` and will be combined as shown below:
     
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 ckExample2 <- read.csv("data/ckExample_2.csv")
 kable(ckExample2) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
@@ -167,7 +167,7 @@ It has 3 sub phases:
 - `Setup`: It initializes `topKCount` from job configuration, which is the value for the final top k flights for which we want to run the MR job.
 - `Reduce`: The reduce phase works on the total following reducer local variables:
 
-    ```{r, echo = FALSE}
+    ```{r, echo = FALSE, message=FALSE, warning=FALSE}
     varDesc <- read.csv("data/varDesc.csv")
     kable(varDesc) %>% kable_styling(bootstrap_options = "striped", full_width = F)
     ```
@@ -208,11 +208,11 @@ The output is explained below,
 * flightDelayAirlineData-r-00000 :
      The final `mean delays` for airlines. Data is aggregated on Year,Month,AirlineCode for top 5 most busy airlines. Every row represents,
     ```
-    <year>,<month>,<airlineCode>,<airlineName>,<recordType=1>,<totalDelay>,<totalCount>
+    <year>,<month>,<airlineCode>,<airlineName>,<recordType=2>,<totalDelay>,<totalCount>
     ```
 
 
-# Analysis
+# Output Data Analysis
 
 ```{r, echo=FALSE, include=TRUE}
 library(ggplot2)
@@ -224,24 +224,36 @@ colnames(df.airport) <- c("year","month","code","name","type","delay")
 colnames(df.airline) <- c("year","month","code","name","type","delay")
 ```
 
+**Top 5 Busiest Airports**
+    ```{r, echo = FALSE, message=FALSE, warning=FALSE}
+    varDesc <- read.csv("data/top5BusyAirport.csv")
+    kable(varDesc) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    ```
+
+**Top 5 Busiest Airlines**
+    ```{r, echo = FALSE, message=FALSE, warning=FALSE}
+    varDesc <- read.csv("data/top5BusyAirline.csv")
+    kable(varDesc) %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    ```
+
 ```{r, echo=FALSE, include=TRUE, fig.width=20, fig.height=30}
 arline.no.years<-uniqueN(df.airline$year)
 ggplot(data = df.airline, mapping = aes(x = factor(month), y=delay,color=factor(name), width=.80)) +
-  geom_point(size=0.5) + facet_wrap(name ~ year,ncol=arline.no.years) + labs(x = "Months", y="Mean Delay",title="Plot 1. Mean Delay For 5 Most Active Airlines",color = "Airlines") + scale_x_discrete(labels=c("1"="1","2"="","3"="","4"="","5"="","6"="","7"="","8"="","9"="12","10"="","11"="","12"=""))+theme(axis.ticks.x=element_blank(),axis.text.x = element_text(angle = 90, hjust = 1))
+  geom_point(size=1.5) + facet_wrap(name ~ year,ncol=arline.no.years) + labs(x = "Months", y="Mean Delay",title="Plot 1. Mean Delay For 5 Most Active Airlines",color = "Airlines") + scale_x_discrete(labels=c("1"="1","2"="","3"="","4"="","5"="","6"="","7"="","8"="","9"="","10"="12","11"="","12"=""))+theme(axis.ticks.x=element_blank(),axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 
-`Plot 1.` tells us about mean delay of top five most active airports across corpus for each month from year 1987-2015. The delay is normalized by length of flight. There is a clear trend of reduction in delays over the year range. This trend is seen for all the airports and indicates the improvement in flight control and technology over these years.
+`Plot 1.` tells us about mean delay of top five most active airports across corpus for each month from year 1987-2015. `x` axis represents the years divided by months. `y` axis represents the mean delay. The delay is normalized by length of flight. There is a clear trend of reduction in delays over the year range. This trend is seen for all the airports and indicates the improvement in flight control and technology over these years.
 
 
 ```{r, echo=FALSE, include=TRUE, fig.width=20, fig.height=30}
 airport.no.years<-uniqueN(df.airport$year)
 ggplot(data = df.airport, mapping = aes(x = factor(month), y=delay,color=factor(name), width=.80)) +
-  geom_point(size=0.5) + facet_wrap(name ~ year,ncol=airport.no.years) + labs(x = "Months", y="Mean Delay",title="Plot 2. Mean Delay For 5 Most Active Airports",color = "Airports") + scale_x_discrete(labels=c("1"="1","2"="","3"="","4"="","5"="","6"="","7"="","8"="","9"="12","10"="","11"="","12"=""))+theme(axis.ticks.x=element_blank(),axis.text.x = element_text(angle = 90, hjust = 1))
+  geom_point(size=1.5) + facet_wrap(name ~ year,ncol=airport.no.years) + labs(x = "Months", y="Mean Delay",title="Plot 2. Mean Delay For 5 Most Active Airports",color = "Airports") + scale_x_discrete(labels=c("1"="1","2"="","3"="","4"="","5"="","6"="","7"="","8"="","9"="","10"="12","11"="","12"=""))+theme(axis.ticks.x=element_blank(),axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 
-`Plot 2.` tells us about mean delay of top five most active airlines across corpus for each month from year 1987-2015. The delay is normalized by length of flight. There is a clear trend of reduction in delays over the year range. This trend is seen for all the airlines and indicates the improvement in flight control and technology over these years.
+`Plot 2.` tells us about mean delay of top five most active airlines across corpus for each month from year 1987-2015. `x` axis represents the years divided by months. `y` axis represents the mean delay. The delay is normalized by length of flight. There is a clear trend of reduction in delays over the year range. This trend is seen for all the airlines and indicates the improvement in flight control and technology over these years.
 
 
 ```{r, echo=FALSE, include=TRUE}
@@ -250,7 +262,7 @@ ggplot(df.airport, aes(x=name, y=delay, fill=name)) +
     geom_violin()  + geom_boxplot(width=0.1) + theme(legend.position="none") + labs(x = "Airport", y="Total Mean Delay",title="Plot 3. Total Mean Delay For 5 Most Active Airports")
 ``` 
 
-`Plot 3.` shows total mean delay for 5 most active airport from 1987-2015. We can see that Airport `ATL` has the highest median with frequency distribution along the complete range. We can infer that `ATL` has performed poorly over these 29 years as compared to all other airports.
+`Plot 3.` shows total mean delay for 5 most active airport from 1987-2015. `x` axis represents the top 5 busiest Airports. `y` axis represents total mean delay across 29 yrs. We can see that Airport `ATL` has the highest median with frequency distribution along the complete range. We can infer that `ATL` has performed poorly over these 29 years as compared to all other airports.
 
 
 ```{r, echo=FALSE, include=TRUE}
@@ -259,7 +271,7 @@ ggplot(df.airline, aes(x=name, y=delay, fill=name)) +
 
 ``` 
 
-`Plot 4.` shows total mean delay for 5 most active airlines from 1987-2015. `DL`,`US`,`WN` have median around .0175, but as `DL` is more elongated, we can concur that it is has most delays over the period of 29 yrs. 
+`Plot 4.` shows total mean delay for 5 most active airlines from 1987-2015. `x` axis represents the top 5 busiest Airlines. `y` axis represents total mean delay across 29 yrs. `DL`,`US`,`WN` have median around .0175, but as `DL` is more elongated, we can concur that it is has most delays over the period of 29 yrs. 
 
 
 ```{r, echo=FALSE, include=TRUE}
@@ -270,17 +282,31 @@ ggplot(df.airport.month.mean.sd, aes(x=month, y=factor(mean), fill=factor(month)
   
 ``` 
 
-`Plot 5.` is analysis of seasonal trends of mean delays from 1987-2015. `x` axis represents the months and `y` axis gives total mean delay for all top 5 airports over 29 yrs. From the figure we can safely say that the month of December has the most delays across airports, maybe due the Holidays. Additionally, September saw least delays, indicating the end of summer and thus less travel.
+`Plot 5.` is analysis of seasonal trends of mean delays from 1987-2015. `x` axis represents the months and `y` axis gives total mean delay for all top 5 airports over 29 yrs. From the figure we can safely say that the month of December has the most delays across airports, maybe due to the Holidays. Additionally, September saw least delays, indicating the end of summer and thus less travel.
 
 
 # Job Execution
 
+## Psuedo Distributed 
 
-## Machine Specifications
+Used the below machine, to run the job.
+```
+OS: OSX
+Processor Name:	Intel Core i7
+Processor Speed:	2.8 GHz
+Number of Processors:	1
+Total Number of Cores:	4
+L2 Cache (per Core):	256 KB
+L3 Cache:	6 MB
+Memory:	16 GB 
+SSD: 256 GB
 
+```
 
-# Improvements
-* Improve heap performance.
+The job took 13m to rum on the complete corpus. Below are some important observations, 
 
+* Input of 6.55 GB(for 337 items) was reduced to 102.5 KB (4 output files)
+* Total input files to process : 337 and Number of splits:337. Per file per mapper which is expected default behavior.  
 
-
+## AWS EMR
+Ran the same job on 4 cluster m4.xlarge EMR. The entire corpus took 10.4m to run. There is not much improvement because the data not big enough to produce any noticeable results. Also there is network i/o between distributed mappers and reducer causing some delay.
