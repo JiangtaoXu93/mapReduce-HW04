@@ -5,11 +5,13 @@ import static org.neu.FlightPerformance.TOP_K_COUNT_CONF_KEY;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.neu.comparator.FlightCountComparator;
+import org.neu.data.FlightCodeCountKeyPair;
 import org.neu.data.FlightDataWritable;
 import org.neu.data.FlightInfoCompositeKey;
 
@@ -24,6 +26,10 @@ public class FlightDelayReducer extends
   private static int topKCount;
   private MultipleOutputs mos;
   private Map<Integer, TreeMap<Map<Integer, Integer>, Integer>> flightCountMap = new HashMap<>();
+  private Map<Integer, Integer> airportMap = new HashMap<>();
+  private Map<Integer, Integer> airlineMap = new HashMap<>();
+  private SortedSet<FlightCodeCountKeyPair> airportSortedSet = new TreeSet<>();
+  private SortedSet<FlightCodeCountKeyPair> airlineSortedSet = new TreeSet<>();
 
   @Override
   protected void setup(Context context) throws IOException, InterruptedException {
@@ -47,7 +53,7 @@ public class FlightDelayReducer extends
   }
 
   private void increaseRecordCount(FlightInfoCompositeKey key, int count) {
-    Map<Integer, Integer> keyMap = new HashMap<>();
+    /*Map<Integer, Integer> keyMap = new HashMap<>();
     keyMap.put(key.getAaCode().get(), count);
 
     int flightCount = flightCountMap
@@ -55,26 +61,67 @@ public class FlightDelayReducer extends
         .computeIfAbsent(keyMap, k -> 0);
     flightCount += count;
     keyMap.put(key.getAaCode().get(), flightCount);
-    flightCountMap.get(key.getRecordType().get()).put(keyMap, flightCount);
+    flightCountMap.get(key.getRecordType().get()).put(keyMap, flightCount);*/
+
+    if (key.getRecordType().get() == 1) {
+      int flightCount = airportMap.computeIfAbsent(key.getAaCode().get(), k -> 0);
+      flightCount+=count;
+      airportMap.put(key.getAaCode().get(), flightCount);
+    } else {
+      int flightCount = airlineMap.computeIfAbsent(key.getAaCode().get(), k -> 0);
+      flightCount+=count;
+      airlineMap.put(key.getAaCode().get(), flightCount);
+    }
   }
 
   @Override
   protected void cleanup(Context context) throws IOException, InterruptedException {
+    sortCountMaps();
     writeMostBusy();
     mos.close();
   }
 
+  private void sortCountMaps() {
+
+    for (Map.Entry<Integer, Integer> entry : airportMap.entrySet()) {
+      airportSortedSet.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
+    }
+    for (Map.Entry<Integer, Integer> entry : airlineMap.entrySet()) {
+      airlineSortedSet.add(new FlightCodeCountKeyPair(entry.getKey(), entry.getValue()));
+    }
+  }
+
   private void writeMostBusy() throws IOException, InterruptedException {
-    for (Map.Entry<Integer, TreeMap<Map<Integer, Integer>, Integer>> e1 : flightCountMap
+    int airportRecordCount = 0;
+    int airlineRecordCount = 0;
+    for (FlightCodeCountKeyPair airportEntry : airportSortedSet) {
+      if (++airportRecordCount <= topKCount) {
+        mos.write("mostBusyData", new Text(String.valueOf(1)),
+            new Text(String.valueOf(airportEntry.getAaCode())));
+      } else {
+        break;
+      }
+    }
+    for (FlightCodeCountKeyPair airlineEntry : airlineSortedSet) {
+      if (++airlineRecordCount <= topKCount) {
+        mos.write("mostBusyData", new Text(String.valueOf(2)),
+            new Text(String.valueOf(airlineEntry.getAaCode())));
+      } else {
+        break;
+      }
+    }
+
+    /*for (Map.Entry<Integer, TreeMap<Map<Integer, Integer>, Integer>> e1 : flightCountMap
         .entrySet()) {
-      int recordCount = 0;
+      int arilineRecordCount = 0;
       for (Map.Entry<Map<Integer, Integer>, Integer> e2 : e1.getValue().entrySet()) {
-        if (++recordCount <= topKCount) {
+        if (++arilineRecordCount <= topKCount) {
           mos.write("mostBusyData", new Text(String.valueOf(e1.getKey())),
               new Text(String.valueOf(e2.getKey().entrySet().iterator().next().getKey())));
         }
       }
-    }
+    }*/
+
   }
 
 
