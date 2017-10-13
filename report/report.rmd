@@ -84,7 +84,7 @@ The following table shows difference in fields for each composite key instance.
 library(knitr)
 library(kableExtra)
 compositeDF <- read.csv("data/CompositeKeyCompare.csv")
-kable(compositeDF, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+kable(compositeDF) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
     
 This class also overrides `compareTo` method in the following way
@@ -141,14 +141,14 @@ This process is shown below:
     
 ```{r, echo = FALSE}
 ckExample1 <- read.csv("data/ckExample_1.csv")
-kable(ckExample1, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+kable(ckExample1) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
     
 As shown in the above table, there are four records, 2 each of type airport and airline. The data from the above table will be grouped on `FlightCountCompositeKey` and will be combined as shown below:
     
 ```{r, echo = FALSE}
 ckExample2 <- read.csv("data/ckExample_2.csv")
-kable(ckExample2, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+kable(ckExample2) %>% kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
     
@@ -169,7 +169,7 @@ It has 3 sub phases:
 
     ```{r, echo = FALSE}
     varDesc <- read.csv("data/varDesc.csv")
-    kable(varDesc, "html") %>% kable_styling(bootstrap_options = "striped", full_width = F)
+    kable(varDesc) %>% kable_styling(bootstrap_options = "striped", full_width = F)
     ```
     It performs the following operations,
 
