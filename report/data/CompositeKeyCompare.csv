@@ -1,0 +1,6 @@
+Fields,AirLine Instance,Airport Instance
+year,Same,Same
+month,Same,Same
+aaCode,Unique code for Airport like 'JFK',Unique code for Airline 'UA'
+aaName,Name for the Airport,Name of Airline
+recordType,2,1
